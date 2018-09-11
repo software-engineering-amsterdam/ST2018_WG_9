@@ -101,10 +101,29 @@ mapOdd g [] = []
 mapOdd g (x:xs) = x : mapEven g xs
 
 isAmericanExpress :: Integer -> Bool
-isAmericanExpress x = head (digits x) == 3 && luhn x
+isAmericanExpress x = head digits' == 3 && luhn x && length digits' == 15
+                     where digits' = digits x 
 
 isMaster :: Integer -> Bool
-isMaster x = head (digits x) == 5 && luhn x
+isMaster x = head (digits x) == 5 && luhn x && length digits' == 16
+            where digits' = digits x 
 
 isVisa :: Integer -> Bool
-isVisa x = head (digits x) == 4 && luhn x
+isVisa x = head digits' == 4 && luhn x && length digits' == 16
+          where digits' = digits x 
+
+-- | Exercise 8 | Time: 0 
+-- Finished this exercise with the group, they explained their solution and I understood it. 
+
+accuses :: Boy -> Boy -> Bool
+accuses g Matthew = undefined
+accuses g Peter   = undefined
+accuses g Jack    = undefined
+accuses g Arnold  = undefined
+accuses g Carl    = undefined 
+
+guilty :: [Boy]
+guilty = undefined
+
+honest :: [Boy]
+honest = undefined
