@@ -9,8 +9,9 @@ infix 1 -->
 (-->) :: Bool -> Bool -> Bool
 p --> q = not p || q
 
+-- ################################### Exercise 1 ###################################
+-- Time: 45 min
 
--- | Exercise 1 - Time: 50 min
 -- Red Curry claims that the numbers returned by probs are random in the open interval (0..1).
 probs :: Int -> IO [Float]
 probs 0 = return []
@@ -41,7 +42,8 @@ probsRunner = do
               xs <- probs 100000
               return (probsCheckCounter 4 xs)
 
--- | Exercise 2 - Time: 40 min
+-- ################################### Exercise 2 ###################################
+-- Time: 30 min
 data Shape = NoTriangle | Equilateral 
            | Isosceles  | Rectangular | Other deriving (Eq,Show)
 
@@ -75,7 +77,9 @@ triangle a b c | not (isTriangle a b c)      = NoTriangle
                | isIsoscelesTriangle   a b c = Isosceles
                | otherwise                   = Other
 
--- | Exercise 3 - Time: 45 min, mostly wasted on creating show instances for functions, but these cannot be pattern matched...
+-- ################################### Exercise 3 ################################### 
+-- Time: 45 min, mostly wasted on creating show instances for functions, but these cannot be pattern matched...
+
 forall :: [a] -> (a -> Bool) -> Bool
 forall = flip all
 
@@ -106,14 +110,17 @@ strongerOrd xs p q | stronger xs p q && stronger xs q p = EQ
                    | stronger xs q p                    = GT 
 
 -- Now to use sortBy that implements this orderer, only uses the first element of the tuples, and shows the second
+strongOrderer :: [String]
 strongOrderer = map snd (sortBy f propList)
                     where f x y = strongerOrd [-10..10] (fst x) (fst y)
+-- *Lab2> strongOrderer
+-- ["(even x && x > 3","even","((even x && x > 3) || even x)","(even x || x > 3"]
 
--- | Exercise 4 - Time: 10 min
+-- ################################### Exercise 4 ###################################  - Time: 10 min
 isPermutation :: Eq a => [a] -> [a] -> Bool
 isPermutation xs ys = all (`elem` xs) ys && (xs /= ys) && (length xs == length ys)
 
--- | Exercise 5 - Time: 30 min
+-- ################################### Exercise 5 ###################################  - Time: 30 min
 -- isExclusive checks whether an iterative index occurence of the heads of the list are not identical
 isExclusiveIndex :: [Int] -> [Int] -> Bool
 isExclusiveIndex []      []    = True
@@ -128,7 +135,9 @@ deran :: Int -> [[Int]]
 deran n = filter (isDerangement xs) (permutations xs)
         where xs = [0..n-1]
 
--- | Exercise 6 - Time: 40 min, mostly spend on browsing Data.Char (don't use if often)
+-- ################################### Exercise 6 ###################################  
+-- Time: 40 min, mostly spend on browsing Data.Char (don't use if often)
+
 -- ['a'..'z'] does not work, 'm' can correctly map to 'z', but 'n' maps to a character outside of the a-z alphabet
 -- That's why a backwards rotation is specified from this cutoff point. Note that special cases have to be made for
 -- capital letters. If it is not a character affected by rot13, we keep it in place
@@ -143,8 +152,10 @@ rot13ByChar c | c `elem` (['a'..'m'] ++ ['A'..'M']) = c `charAdd` 13
 rot13 :: String -> String
 rot13 = map rot13ByChar
 
--- | Exercise 7 - Time: 90 min
--- Replace each letter in the string with two digits, thereby expanding the string, where A = 10, B = 11, ..., Z = 35
+-- ################################### Exercise 7 ################################### 
+-- Time: 90 min
+
+-- Replace each letter in the string with two digits, thereby expanding the string,
 -- Interpret the string as a decimal integer and compute the remainder of that number on division by 97
 iban :: String -> Bool
 iban xs = (concatListToOneNumber (charsToDigits (move4Initials xs)) `mod` 97) == 1 
@@ -154,6 +165,7 @@ move4Initials :: [a] -> [a]
 move4Initials xs = drop 4 xs ++ take 4 xs
 
 -- Replaces each letter by its two digit interpretation or throws an error. Ignore spaces before checking the rest
+--  where A = 10, B = 11, ..., Z = 35
 charsToDigits :: String -> [Int]
 charsToDigits []     = []
 charsToDigits (x:xs) | x == ' '                          = charsToDigits xs
@@ -166,7 +178,8 @@ concatListToOneNumber = read . concatMap show
 -- To convert a list of digits to one number, doing it the following way converts [1,2,30] to 150, an undesired result.. 
 -- concatListOfDigits :: [Int] -> Int
 -- concatListOfDigits = foldl (\x y -> 10 * x + y) 0
--- That's why I default to the read . concatMap show method. Although ugly, since we convert back and forth, it has a perfect usecase here.
+-- That's why I default to the read . concatMap show method. Although ugly, 
+-- since we convert back and forth, it has a perfect usecase here.
 
 -- TODO: - throw false on invalid characters instead of an error
 --       - check countries
