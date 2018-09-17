@@ -88,6 +88,15 @@ prop2 = Prop (\x -> even x || x > 3) 2
 prop3 = Prop (\x -> (even x && x > 3) || even x) 3
 
 -- Exercise 4 --
+-- 2 hours
+-- The following tests are written with the following logic:
+-- If the function to be tested returns true, the relational property between the input and output should also yield true.
+-- This is enforced with logical implication (-->)
+--
+-- Relational properties and Preconditionals are the only testable properties with this type of function.
+-- This is because the function to be tested returns only in the following domain: (True, False)
+-- There are no unary properties that describe binary output.
+
 isPermutation :: Eq a => [a] -> [a] -> Bool
 isPermutation a b = all ((flip elem) b) a && length a == length b
 
@@ -95,36 +104,131 @@ isPermutation a b = all ((flip elem) b) a && length a == length b
 -- Because permutations are randomly generated, it is sure that the pre conditions hold. If the preconditions
 -- hold, the isPermutation function should always generate True, because we know the input is valid. 
 
-sameLengthProp :: [a] -> [a] -> Bool
+-- Input and output of the function should have the same length
+sameLengthProp :: Eq a => [a] -> [a] -> Bool
 sameLengthProp a b = length a == length b
 
+-- Every element of the input should be present in the output
+allElementsPresent :: Eq a => [a] -> [a] -> Bool
+allElementsPresent a b = all ((flip elem) b) a
 
+-- k, current test
+-- n, total amount of tests
+-- f, function to be tested
+-- r, relation property
 testIterator :: Int -> Int -> ([Int] -> [Int] -> Bool) -> ([Int] -> [Int] -> Bool) -> IO ()
 testIterator k n f r = if k == n then print (show n ++ " tests passed")
  else do
     xs <- genIntList
     ys <- return $ head (permutations xs)
-    if r xs ys --> f xs ys then do
+    if f xs ys --> r xs ys then do
         print ("pass on: " ++ show xs)
         testIterator (k+1) n f r
     else error ("failed test on: " ++ show xs)
 
--- testPermutations :: [RelationProp [a]] -> (a -> a) -> a -> [RelationProp [a]] -> Bool
--- testPermutations precondition f input postcondition = all (==True) $ map (mapFunc input) precondition
---     where mapFunc x (RelationProp f) = f input
+-- Runs the tests with, for example, the sameLenghtProp
+-- Returns: 100 tests passed
+manualTestRunner :: IO ()
+manualTestRunner = testIterator 1 100 isPermutation sameLengthProp
+
+-- Test implementation using quickcheck
+-- r is the relational property to be tested
+quickCheckPermutations :: [Int] -> ([Int] -> [Int] -> Bool) -> Bool
+quickCheckPermutations xs r = isPermutation xs ys --> r xs ys
+        where ys = head $ permutations xs
+
+-- Returns: +++ OK, passed 100 tests
+quickCheckPermRunner :: IO ()
+quickCheckPermRunner = quickCheck $ (flip quickCheckPermutations) allElementsPresent
 
 -- EXERCISE 5 --
+-- 1 hour --
+-- isDerangement is essentialy an extension on the isPermutations function. Therefore the relational properties
+-- defined for isPermutations also apply to isDerangement.
+
 isDerangement :: Eq a => [a] -> [a] -> Bool
-isDerangement [] [] = True
-isDerangement (x:xs) (y:ys) | x == y = False
-                            | otherwise = isDerangement xs ys
+isDerangement xs ys = isPermutation xs ys && isDerangement' xs ys
+    where   isDerangement' [] [] = True
+            isDerangement' (x:xs) (y:ys)    | x == y = False
+                                            | otherwise = isDerangement' xs ys
 
 deran :: Int -> [[Int]]
 deran n = filter (isDerangement [0..n-1]) ( permutations [0..n-1])
 
--- derangeProp :: [a] -> [a] -> Bool
--- derangeProp xs ys = all ((flip elem) xs) ys
+-- Input and output can't be the same
+derangeProp :: (Num a, Eq a) => [a] -> [a] -> Bool
+derangeProp xs ys = xs /= ys
 
--- derangeProp2 :: [a] -> [a] -> Bool
--- derangeProp2 xs ys = isPermutation xs ys
+-- TODO: Come up with more props
 
+-- Derangements of [1,2,3]
+trueDerangements :: (Num a, Eq a) => [[a]]
+trueDerangements = [[1,2,0], [2,0,1]]
+
+falseDerangements :: (Num a, Eq a) => [[a]]
+falseDerangements = [[1,2,3], [1,2], [1,3,2]]
+
+-- orig: The list where the derangements originate from
+-- ders: The list of derangements
+-- r: the relational property
+manualDerangeTest :: (Num a, Eq a) => [a] -> [[a]] -> ([a] -> [a] -> Bool) -> Bool
+manualDerangeTest orig ders r = all (==True) ys
+        where ys = map (\x -> isDerangement x orig --> r orig x) ders
+
+manualDerangeTestRunner :: Bool
+manualDerangeTestRunner = manualDerangeTest [1,2,3] falseDerangements derangeProp
+
+quickCheckDerange :: Int -> Bool
+quickCheckDerange n = n > 0  && n < 10 --> manualDerangeTest [0..n-1] (deran n) derangeProp
+
+quickCheckDerangeRunner :: IO ()
+quickCheckDerangeRunner = quickCheck quickCheckDerange
+
+
+-- EXERCISE 6 --
+-- 45 mins --
+-- Formal Specification
+-- Preconditions:   - The input should be a string without numbers, all lowercase
+-- Postconditions:  - Each letter in the string should be substituted by the letter 13 places through the alphabet
+--                  - The output should be a lowercased string excluded from numbers
+--                  - rot13 . rot13 $ x = x
+
+alphabet :: [Char]
+alphabet = "abcdefghijklmnopqrstuvwxyz"
+
+indexOf :: Eq a => a -> [a] -> Int
+indexOf e xs = indexOf' e 0 xs
+    where   indexOf' e n [] = -1
+            indexOf' e n (x:xs) | e == x = n
+                                | otherwise = indexOf' e (n+1) xs
+
+rot13 :: [Char] -> [Char]
+rot13 xs = map (\x -> alphabet !! ((alphIndex x + 13) - 26 * ((alphIndex x + 13) `div` 26))) xs
+        where alphIndex x = indexOf x alphabet
+    
+
+rot13Test1 :: [Char] -> Bool
+rot13Test1 xs = (all (\x -> (indexOf x alphabet) /= -1) xs) --> xs == (rot13 . rot13 $ xs)
+
+rot13Test2 :: [Char] -> Bool
+rot13Test2 xs = (all (\x -> (indexOf x alphabet) /= -1) xs) --> length xs == (length . rot13 $ xs)
+--    alphabet !! ((indexOf x alphabet) + 13)) xs
+
+rot13TestRunner :: IO ()
+rot13TestRunner = quickCheck rot13Test1 -- or rot13Test2
+
+-- EXERCISE 7 --
+iban :: String -> Bool
+iban xs = (substituteLetters . moveFirstFour $ xs) `mod` 97 == 1
+
+substituteLetters :: String -> Integer
+substituteLetters xs = read $ intercalate "" $ filter (/= " ") $ letterToNumber xs :: Integer
+        where   letterToNumber xs = map (\x -> if alphIndex x /= -1 then show $ 10 + alphIndex x else [x]) xs 
+                alphIndex x = indexOf x alphabet'
+
+
+moveFirstFour :: String -> String
+moveFirstFour (a:b:c:d:e) = e ++ [a, b, c, d]
+
+alphabet' :: String
+alphabet' = ['A'..'Z']
