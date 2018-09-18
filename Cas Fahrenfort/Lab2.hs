@@ -232,13 +232,20 @@ testRot13 = do
 i :: [Char]
 i = ['G','B','8','2','W','E','S','T','1','2','3','4','5','6','9','8','7','6','5','4','3','2']
 
-iban :: String -> [Int]
-iban (i:j:k:l:m) = toSingles (map replaceChars $ m ++ [i,j,k,l])
-    where replaceChars c | ord c >= 65 && ord c <= 90 = ord c - 55
+iban :: String -> Bool
+iban (i:j:k:l:m) = fromDigits singles `mod` 97 == 1
+    where replaced = map (toInteger . replaceChars) $ m ++ [i,j,k,l]
+          singles = toSingles replaced
+          replaceChars c | ord c >= 65 && ord c <= 90 = ord c - 55
                          | ord c >= 97 && ord c <= 122 = ord c - 87
                          | otherwise = ord c - 48
 
-toSingles :: [Int] -> [Int]
+fromDigits :: [Integer] -> Integer
+fromDigits xs = aux xs 0
+    where aux [] acc = acc
+          aux (x:xs) acc  = aux xs ((acc * 10) + x)
+
+toSingles :: [Integer] -> [Integer]
 toSingles xs = f xs []
     where f [] ys = ys
           f (x:xs) ys | x >= 10 = f xs (ys ++ [x `div` 10, x `mod` 10])
