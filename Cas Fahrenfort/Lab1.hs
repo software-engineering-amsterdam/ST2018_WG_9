@@ -146,6 +146,4 @@ guilty = filter f boys
               | otherwise = False
 
 honest :: [Boy]
-honest = filter f boys
-    where f x | accuses (head guilty) x = True
-              | otherwise = False
+honest = filter (accuses (head guilty)) boys
