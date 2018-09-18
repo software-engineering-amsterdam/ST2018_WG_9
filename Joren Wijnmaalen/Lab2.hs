@@ -64,7 +64,8 @@ triangle a b c  | a + b < c || b + c < a || c + a < b = NoTriangle
 
 -- EXERCISE 3 --
 -- 30 min
--- answer: [3,2,1]
+-- answer: [2,4,1,3]
+-- Property 1 and 4 are equal in strength. The list starts with the strongest property with decreasing strength.
 
 -- The prop datatype is essentially a tuple of the prop function with a number as label
 -- for printing purposes
@@ -74,19 +75,19 @@ instance Show (Prop a) where
 
 -- Order the properties using the orderfunction
 strengthList :: [Prop Int]
-strengthList = sortBy ordFunc [prop1, prop2, prop3]
+strengthList = sortBy ordFunc [prop3, prop4, prop1, prop2]
 
 -- This order function defines an ordering based on the stronger function between two properties
 ordFunc :: Prop Int -> Prop Int -> Ordering
-ordFunc (Prop f n) (Prop f2 n2)   | stronger [1..10] f f2 = GT
-                                    | otherwise = LT
+ordFunc (Prop f n) (Prop f2 n2)   | stronger [1..10] f f2 = LT
+                                    | otherwise = GT
 
 -- The three props from the exercise
-prop1, prop2, prop3 :: Prop Int
-prop1 = Prop (\x -> even x && x > 3) 1
-prop2 = Prop (\x -> even x || x > 3) 2
-prop3 = Prop (\x -> (even x && x > 3) || even x) 3
-
+prop1, prop2, prop3, prop4 :: Prop Int
+prop1 = Prop (\x -> even x && x > 3) 2
+prop2 = Prop (\x -> even x || x > 3) 3
+prop3 = Prop (\x -> (even x && x > 3) || even x) 4
+prop4 = Prop (\x -> even x) 1
 -- Exercise 4 --
 -- 2 hours
 -- The following tests are written with the following logic:
