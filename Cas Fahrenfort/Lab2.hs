@@ -193,6 +193,10 @@ prop7 (x:xs) (y:ys) | checkValues x y = prop7 xs ys
     where checkValues c1 c2 | ord c1 <= 109 = ord c1 + 13 == ord c2
           checkValues c1 c2 | ord c1 > 109  = ord c2      == 96 + (13 - (122 - ord c1))
 
+-- Checks that when rot13 is applied to a string twice it is the same as the original string 
+prop8 :: [Char] -> Bool
+prop8 s = rot13 (rot13 s) == s
+
 -- Give a random char between 'a' and 'z'.
 getRandomChar :: IO Char
 getRandomChar = do 
@@ -211,22 +215,37 @@ getRandomCharList n = do
 -- It generates a random character list with a random length between 0 and 100.
 -- Then applies the rot13 algorithm to it and checks the altered string with prop7 to
 -- see if it satisfies the postconditions of rot13.
-testPropRot13 :: Int -> Int -> IO Bool
-testPropRot13 k n = 
-             if k == n 
-             then return True
-             else do
-              i <- getRandomInt 100
-              rnd <- getRandomCharList i
-              rot <- return $ rot13 rnd
-              if prop7 rnd rot
-                then do testPropRot13 (k+1) n
+testProp7Rot13 :: Int -> Int -> IO Bool
+testProp7Rot13 k n = 
+              if k == n 
+              then return True
+              else do
+               i <- getRandomInt 100
+               rnd <- getRandomCharList i
+               rot <- return $ rot13 rnd
+               if prop7 rnd rot && prop8 rnd
+                 then do testProp7Rot13 (k+1) n
+                 else return False
+
+-- The same as the previous method, but using prop8 to check.
+testProp8Rot13 :: Int -> Int -> IO Bool
+testProp8Rot13 k n = 
+              if k == n 
+              then return True
+              else do
+                i <- getRandomInt 100
+                rnd <- getRandomCharList i
+                rot <- return $ rot13 rnd
+                if prop8 rnd
+                then do testProp8Rot13 (k+1) n
                 else return False
 
 testRot13 :: IO ()
 testRot13 = do 
-             result1 <- testPropRot13 1 100
+             result1 <- testProp7Rot13 1 100
              if (result1) then print "prop7 passed (100 tests)" else print "prop7 failed"
+             result2 <- testProp8Rot13 1 100
+             if (result2) then print "prop8 passed (100 tests)" else print "prop8 failed"
 
 -- Exercise 7
 -- List of valid IBANs from https://www.iban.com/structure
