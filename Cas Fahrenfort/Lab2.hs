@@ -229,8 +229,23 @@ testRot13 = do
              if (result1) then print "prop7 passed (100 tests)" else print "prop7 failed"
 
 -- Exercise 7
-i :: [Char]
-i = ['G','B','8','2','W','E','S','T','1','2','3','4','5','6','9','8','7','6','5','4','3','2']
+-- List of valid IBANs from https://www.iban.com/structure
+ibanList :: [String]
+ibanList = ["AL35202111090000000001234567","AD1400080001001234567890","AT483200000012345864","AZ96AZEJ00000000001234567890","BH02CITI00001077181611",
+         "BY86AKBB10100000002966000000","BE71096123456769","BA393385804800211234","BR1500000000000010932840814P2","BG18RZBB91550123456789",
+         "CR23015108410026012345","HR1723600001101234565","CY21002001950000357001234567","CZ5508000000001234567899","DK9520000123456789",
+         "DO22ACAU00000000000123456789","SV43ACAT00000000000000123123","EE471000001020145685","FO9264600123456789","FI1410093000123458",
+         "FR7630006000011234567890189","GE60NB0000000123456789","DE91100000000123456789","GI04BARC000001234567890","GR9608100010000001234567890",
+         "GL8964710123456789","GT20AGRO00000000001234567890","HU93116000060000000012345676","IS030001121234561234567890","IQ20CBIQ861800101010500",
+         "IE64IRCE92050112345678","IL170108000000012612345","IT60X0542811101000000123456","JO71CBJO0000000000001234567890","KZ563190000012344567",
+         "XK051212012345678906","KW81CBKU0000000000001234560101","LV97HABA0012345678910","LB92000700000000123123456123","LI7408806123456789012",
+         "LT601010012345678901","LU120010001234567891","MK07200002785123453","MT31MALT01100000000000000000123","MR1300020001010000123456753",
+         "MU43BOMM0101123456789101000MUR","MD21EX000000000001234567","MC5810096180790123456789085","ME25505000012345678951","NL02ABNA0123456789",
+         "NO8330001234567","PK36SCBL0000001123456702","PS92PALS000000000400123456702","PL10105000997603123456789123","PT50002700000001234567833",
+         "QA54QNBA000000000000693123456","RO09BCYP0000001234567890","LC14BOSL123456789012345678901234","SM76P0854009812123456789123","ST23000200000289355710148",
+         "SA4420000001234567891234","RS35105008123123123173","SC52BAHL01031234567890123456USD","SK8975000000000012345671","SI56192001234567892","ES7921000813610123456789",
+         "SE7280000810340009783242","CH5604835012345678009","TL380010012345678910106","TN5904018104004942712345","TR320010009999901234567890","UA903052992990004149123456789",
+         "AE460090000000123456789","GB98MIDL07009312345678","VG21PACG0000000123456789", "123", "Thisisnotanib4n"]
 
 iban :: String -> Bool
 iban (i:j:k:l:m) = fromDigits singles `mod` 97 == 1
@@ -239,14 +254,33 @@ iban (i:j:k:l:m) = fromDigits singles `mod` 97 == 1
           replaceChars c | ord c >= 65 && ord c <= 90 = ord c - 55
                          | ord c >= 97 && ord c <= 122 = ord c - 87
                          | otherwise = ord c - 48
+iban _ = False
 
+-- Converts a list of integers into a single integer
+-- e.g. [1,2,3,4] => 1234
 fromDigits :: [Integer] -> Integer
 fromDigits xs = aux xs 0
     where aux [] acc = acc
           aux (x:xs) acc  = aux xs ((acc * 10) + x)
 
+-- Converts a list of integers into a list of single-digit numbers
+-- e.g. [1,23,4] => [1,2,3,4]
 toSingles :: [Integer] -> [Integer]
 toSingles xs = f xs []
     where f [] ys = ys
           f (x:xs) ys | x >= 10 = f xs (ys ++ [x `div` 10, x `mod` 10])
                       | otherwise = f xs (ys ++ [x])
+
+
+testIbanList :: Int -> Int -> [String] -> IO ()
+testIbanList n failed []     = do
+                                print $ show n ++ " tests finished, " ++ show failed ++ " failed"
+testIbanList n failed (x:xs) = do
+                                if (iban x)
+                                then do testIbanList n failed xs
+                                else do 
+                                    print $ "Iban test failed for " ++ x
+                                    testIbanList n (failed+1) xs
+
+testIban :: IO ()
+testIban = testIbanList (length ibanList) 0 ibanList
