@@ -248,6 +248,7 @@ testRot13 = do
              if (result2) then print "prop8 passed (100 tests)" else print "prop8 failed"
 
 -- Exercise 7
+-- 45 mins
 -- List of valid IBANs from https://www.iban.com/structure
 ibanList :: [String]
 ibanList = ["AL35202111090000000001234567","AD1400080001001234567890","AT483200000012345864","AZ96AZEJ00000000001234567890","BH02CITI00001077181611",
