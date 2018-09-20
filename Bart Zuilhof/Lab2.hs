@@ -60,18 +60,18 @@ prop1, prop2, prop3 :: Prop Int
 prop1 = Prop (\x ->even x && x > 3) 1
 prop2 = Prop (\x -> even x || x > 3) 2
 prop3 = Prop (\x -> (even x && x > 3) || even x) 3
+prop3' = Prop (\x -> ((even x && x > 3) || even x )) 4
 
 orderFunction :: Prop Int -> Prop Int -> Ordering
-orderFunction (Prop f1 _) (Prop f2 _)   | stronger [1..10] f1 f2 = GT
-                                        | otherwise = LT
+orderFunction (Prop f1 _) (Prop f2 _)   | stronger [1..10] f1 f2 && stronger [1..10] f2 f1 = EQ
+                                        | stronger [1..10] f1 f2 = GT
+                                        | stronger [1..10] f2 f1 = LT
 
-orderProperties = sortBy orderFunction [prop1, prop2, prop3]                    
+orderProperties = sortBy orderFunction [prop1, prop2, prop3, prop3']                    
 --30min
 
 isPermutation :: (Eq a) => [a] -> [a] -> Bool
 isPermutation xs ys = all ((flip elem) xs) ys && length xs == length ys
-
-data Propp a = Propp (a -> a -> Bool)
 
 prop4 xs ys = length xs == length ys
 prop5 xs ys = all ((flip elem) xs) ys
@@ -87,12 +87,12 @@ derangeProp (x:xs) (y:ys) | x == y = False
 deran :: Int -> [[Int]]
 deran n = filter (isDerangement [0..n-1]) (permutations [0..n-1])
 
-testPermu :: Int -> Int -> ([Int] -> [Int])-> ([Int] -> [Int] -> Bool) -> IO ()
-testPermu k n r = if k == n then print (show n ++ " tests passed")
-                else do
-                  xs <- genIntList
-                  ys <- (permutations . head) xs
-                  if isPermutation xs ys && r ys then
-                    do print ("pass on: " ++ show xs)
-                       testPermu (k+1) n r
-                  else error ("failed test on: " ++ show xs)
+-- testPermu :: Int -> Int -> ([Int] -> [Int])-> ([Int] -> [Int] -> Bool) -> IO ()
+-- testPermu k n r = if k == n then print (show n ++ " tests passed")
+--                 else do
+--                   xs <- genIntList
+--                   ys <- (permutations . head) xs
+--                   if isPermutation xs ys && r ys then
+--                     do print ("pass on: " ++ show xs)
+--                        testPermu (k+1) n r
+--                   else error ("failed test on: " ++ show xs)
