@@ -4,10 +4,7 @@ import Data.List
 import Data.Char
 import System.Random
 import Test.QuickCheck
-
-infix 1 -->
-(-->) :: Bool -> Bool -> Bool
-p --> q = not p || q
+import Lecture2
 
 -- ################################### Exercise 1 ###################################
 -- Time: 45 min
@@ -40,7 +37,11 @@ probsCheckCounter n xs = count n (probsCheck xs) : probsCheckCounter (n-1) xs
 probsRunner :: IO [Int]
 probsRunner = do
               xs <- probs 100000
+              putStr "Frequencies for the following order: [0.75..1),[0.5..0.75),[0.25..0.5),(0..0.25) \n"
               return (probsCheckCounter 4 xs)
+--       Test results:  
+--       Frequencies for the following order: [0.75..1),[0.5..0.75),[0.25..0.5),(0..0.25)
+--       [25024,25095,25091,24790]
 
 -- ################################### Exercise 2 ###################################
 -- Time: 30 min
@@ -79,13 +80,6 @@ triangle a b c | not (isTriangle a b c)      = NoTriangle
 
 -- ################################### Exercise 3 ################################### 
 -- Time: 45 min, mostly wasted on creating show instances for functions, but these cannot be pattern matched...
-
-forall :: [a] -> (a -> Bool) -> Bool
-forall = flip all
-
-stronger, weaker :: [a] -> (a -> Bool) -> (a -> Bool) -> Bool
-stronger xs p q = forall xs (\ x -> p x --> q x)
-weaker   xs p q = stronger xs q p
 
 -- Stealing the type notation of stronger, weaker :) didn't know that was possible!
 prop1, prop2, prop3, prop4 :: Int -> Bool
