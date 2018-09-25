@@ -222,3 +222,11 @@ testR k n = if k == n then print (show n ++ " tests passed")
                     do print ("pass on: " ++ show xs)
                        testR (k+1) n
                   else error ("failed test on: " ++ show xs)
+
+-- *Lab3> testR 1 5
+-- "pass on: *((1<=>2) (2<=>3) ((3<=>4)==>((4<=>5)==>*(5 6))) (4<=>5) +((5<=>6) -6) (--6==>*(+(7 8) 8)) (7<=>8) *(*((8==>9) (9<=>10)) +(*(9 10) 10)))"
+-- "pass on: *(*(1 2) (2<=>3))"
+-- "pass on: *(*(-1 (2<=>3)) ((2==>-3)==>-+(3 4)) (3<=>4))"
+-- "pass on: *(((*(1 2)==>(2<=>3))==>-(2<=>3)) (2<=>3))"
+-- "5 tests passed"
+-- *Lab3>
