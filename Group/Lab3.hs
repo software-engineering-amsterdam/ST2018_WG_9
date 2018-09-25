@@ -1,11 +1,9 @@
-{-# LANGUAGE FlexibleInstances #-}
-
 module Lab3 where
 
 import Data.List
 import System.Random
-import System.IO.Unsafe
-import Data.IORef
+-- import System.IO.Unsafe
+-- import Data.IORef
 import Test.QuickCheck
 import Lecture3
 
