@@ -67,7 +67,7 @@ testParse = do let fs = map show forms
 
 -- genRandFormList :: Int -> [IO Form]
 -- genRandFormList 0 l = []
--- genRandFormList n l = formGenerator 3 : genRandFormList (n-1)
+-- genRandFormList n l = (formGenerator (getRandomInt l)) : genRandFormList (n-1)
 
 -- However, since we need the Show instance to work and the generator is written for IO
 -- Something like 
