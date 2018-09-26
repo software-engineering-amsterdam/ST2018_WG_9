@@ -1,7 +1,9 @@
 module Lab3 where
- 
+
 import Data.List
 import System.Random
+-- import System.IO.Unsafe
+-- import Data.IORef
 import Test.QuickCheck
 import Lecture3
 
@@ -43,7 +45,7 @@ equiv f1 f2 = tautology (Equiv f1 f2)
 
 -- Exercise 2
 -- 15 minutes
--- The only way to test the implementation is by using test cases. I will use the show function
+-- The only way to test the implementation is by using test cases. We use the show function
 -- to convert predefined forms to a string, then feed the string into the parse function
 -- and see if the result is equal to the original formula.
 
@@ -52,11 +54,27 @@ forms = [form1, form2, form3, form4, form5, form6, form7, form8, form9]
 -- This function returns true if for all formulas in the 'forms' list, the result of
 -- the 'parse' function applied to the 'show' of the formula is equal to the original formula.
 testParse :: IO Bool
-testParse = do
-                let fs = map show forms
-                let ps = concatMap parse fs
-                return $ ps == forms
+testParse = do let fs = map show forms
+               let ps = concatMap parse fs
+               return $ ps == forms
 
+-- Using the implementation from exercise 4, we can generate a list of forms
+
+-- testParse' :: Int -> IO Bool 
+-- testParse' n = do let fs = map show (genRandFormList n)
+--                   let ps = concatMap parse fs
+--                   return $ ps == forms
+
+-- genRandFormList :: Int -> [IO Form]
+-- genRandFormList 0 l = []
+-- genRandFormList n l = (formGenerator (getRandomInt l)) : genRandFormList (n-1)
+
+-- However, since we need the Show instance to work and the generator is written for IO
+-- Something like 
+-- instance (Show a) => Show (IORef a) where
+--     show a = show (unsafePerformIO (readIORef a))
+-- can be used, but is not good practice. The best thing to do is to write 
+-- a new generator outside the IO monad again.
 
 -- Exercise 3
 -- 1 hour. This implementation for cnf looks at the truthtable. All rows that result in false are conjuncted,
@@ -85,8 +103,62 @@ valToForm v = valToForm' v []
           valToForm' ((n, False):xs) res = valToForm' xs (Neg (Prop n) : res)
           valToForm' ((n, True):xs) res = valToForm' xs (Prop n : res)
 
--- Exercise 4
+-- Bonus: Version without Truth tables
+-- Pipeline explanation
+-- Step 1: use the equivalence between p→q and ¬p∨q to get rid of → symbols       |(arrowFree)
+-- Step 2: use the equivalence of p↔q and (¬p∨q)∧(p∨¬q) to get rid of ↔ symbols   |(arrowFree)
+-- Step 3: p↔q and (p∧q)∨(¬p∧¬q) is also equivalent                                |(arrowFree)
+-- Step 4: conversion to negation normal form Use the equivalence between ¬¬ϕ and ϕ,| (nnf)
+-- Step 5: Use the equivalence between ¬(ϕ∧ψ) and ¬ϕ∨¬ψ,                            | (nnf)
+-- Step 6: Use the equivalence between ¬(ϕ∨ψ)and ¬ϕ∧¬ψ                              | (nnf)
+-- Step 7: Distribute conjunction over disjunction (p^q) v r = (p^r)^(qvr)          |(cnf' -> dist)
 
+
+cnf :: Form -> Form
+cnf = flat . cnf' . nnf . arrowfree
+    where cnf' :: Form -> Form
+          cnf' (Cnj [f1,f2])       = Cnj [cnf' f1, cnf' f2]
+          cnf' (Dsj [f1,f2])       = dist (head [cnf' f1, cnf' f2]) ([cnf' f1, cnf' f2] !! 1) 
+          cnf' expr                = expr
+
+          dist (Cnj [e11, e12]) e2 = Cnj [e11 `dist` e2, e12 `dist` e2] 
+          dist e1 (Cnj [e21,e22])  = Cnj [e1 `dist` e21, e1 `dist` e22]
+          dist e1 e2               = Dsj [e1,e2]
+
+-- Step 6: associative propery: p ∧ q ∧ r ≡ (p ∧ q) ∧ r ≡ p ∧ ( q ∧ r)              | (flat)
+-- For the list of conjunctions starting at the right form, iterate (foldr) with the empty list base
+-- over the list of different subforms in the conjunction. If there is a case where one conjunction appears in this list,
+-- the associative property above specifies that it can be concatenated here. If it is a different expression, nothing really
+-- happens as it gets put in gets pushed on the resulting list. However, the recursive call will check that, and the rest, again.
+-- Inspiration from reduction section here: https://stackoverflow.com/questions/16701186/recursion-in-treefold-function 
+
+flat :: Form -> Form
+flat (Cnj fs)        = Cnj $ foldr (f . flat) [] fs 
+                     where f (Cnj xs) ys = xs ++ ys
+                           f expr ys     = expr : ys
+flat (Dsj fs)        = Dsj $ foldr (f . flat) [] fs
+                     where f (Dsj xs) ys = xs ++ ys
+                           f expr ys     = expr : ys
+flat (Neg f)         = Neg (flat f)
+flat expr            = expr
+
+
+-- Form1 with different show, note that toCNF cannot convert form1 to CNF because it is a tautology
+-- ((a==>b)<=>(-b==>-a))
+-- After arrowfree
+-- (((-a v b) ^ (--b v -a)) v (-(-a v b) ^ -(--b v -a)))
+-- After nnf
+-- (((-a v b) ^ (b v -a)) v ((a ^ -b) ^ (-b ^ a)))
+-- After cnf'
+-- (((((-a v b) v a) ^ ((-a v b) v -b)) ^ (((-a v b) v -b) ^ ((-a v b) v a))) ^ ((((b v -a) v a) ^ ((b v -a) v -b)) ^ (((b v -a) v -b) ^ ((b v -a) v a))))
+-- After flatten
+-- ((-a v b v a) ^ (-a v b v -b) ^ (-a v b v -b) ^ (-a v b v a) ^ (b v -a v a) ^ (b v -a v -b) ^ (b v -a -b) ^ (b v -a v a))
+
+-- The next step would be to prune things like (-a v b v a), (tautology, always true). Although an attempt was made, we spent more time on Exercise 4 as that was more
+-- productive for the grading.
+
+-- Exercise 4
+-- 1.5 hours
 -- The integer input specifices the amount of recursive calls. The algorithm starts with a list of literals
 -- of random length between 0 and 10. Each recursive call, the expression tree is traversed where every literal
 -- is substituted by a random new logical operator (see the substituteLiterals function).
@@ -104,17 +176,17 @@ formGenerator' l xs = do newForms <- mapM subformGenerator xs
 -- Patternmatches the current form, if it is a literal: Substitute it for a random other logical relation
 -- Otherwise, recursively traverse deeper into the expression
 subformGenerator :: Form -> IO Form
-subformGenerator (Prop x) = do n <- getRandomInt 5
-                               return $ substituteLiterals n (Prop x)
+subformGenerator (Prop x)   = do n <- getRandomInt 5
+                                 return $ substituteLiterals n (Prop x)
 subformGenerator (Impl a b) = do newFormA <- subformGenerator a
                                  newFormB <- subformGenerator b
                                  return $ Impl newFormA newFormB
 subformGenerator (Dsj xs)   = do newForms <- mapM subformGenerator xs
                                  return $ Dsj newForms
-subformGenerator (Cnj xs) = do  newForms <- mapM subformGenerator xs
-                                return $ Cnj newForms
-subformGenerator (Neg(x)) = do  newForm <- subformGenerator x
-                                return $ Neg(newForm)     
+subformGenerator (Cnj xs)   = do newForms <- mapM subformGenerator xs
+                                 return $ Cnj newForms
+subformGenerator (Neg x)    = do newForm <- subformGenerator x
+                                 return $ Neg newForm     
 subformGenerator f = return f                      
 
 substituteLiterals :: Int -> Form -> Form
@@ -127,7 +199,6 @@ substituteLiterals 5 (Prop n) = Prop n
 
 getRandomInt :: Int -> IO Int
 getRandomInt n = getStdRandom (randomR (0,n))
-
 
 -- The cnf property, a form is in cnf if it has an outer conjunction, and one level of disjunctions.
 -- The disjunctions should contain lists.
@@ -151,3 +222,11 @@ testR k n = if k == n then print (show n ++ " tests passed")
                     do print ("pass on: " ++ show xs)
                        testR (k+1) n
                   else error ("failed test on: " ++ show xs)
+
+-- *Lab3> testR 1 5
+-- "pass on: *((1<=>2) (2<=>3) ((3<=>4)==>((4<=>5)==>*(5 6))) (4<=>5) +((5<=>6) -6) (--6==>*(+(7 8) 8)) (7<=>8) *(*((8==>9) (9<=>10)) +(*(9 10) 10)))"
+-- "pass on: *(*(1 2) (2<=>3))"
+-- "pass on: *(*(-1 (2<=>3)) ((2==>-3)==>-+(3 4)) (3<=>4))"
+-- "pass on: *(((*(1 2)==>(2<=>3))==>-(2<=>3)) (2<=>3))"
+-- "5 tests passed"
+-- *Lab3>

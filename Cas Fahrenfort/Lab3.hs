@@ -119,40 +119,21 @@ subForm :: Form -> IO Form
 subForm (Prop x) = do
                     n <- getRandomInt 6
                     return $ subLiterals n (Prop x)
-subForm (Neg (Prop x)) = do
-                        n <- getRandomInt 6
-                        return $ Neg (subLiterals n (Prop x))
 subForm (Neg x) = do
                     p1 <- subForm x
                     return $ Neg p1
-subForm (Dsj [Prop x, Prop y]) = do
-                                    n <- getRandomInt 6
-                                    k <- getRandomInt 6
-                                    return (Dsj [subLiterals n (Prop x), subLiterals k (Prop y)])
 subForm (Dsj [x, y]) = do
                         p1 <- subForm x
                         p2 <- subForm y
                         return (Dsj [p1, p2])
-subForm (Cnj [Prop x, Prop y]) = do
-                                    n <- getRandomInt 6
-                                    k <- getRandomInt 6
-                                    return (Cnj [subLiterals n (Prop x), subLiterals k (Prop y)])
 subForm (Cnj [x, y]) = do
                         p1 <- subForm x
                         p2 <- subForm y
                         return (Cnj [p1, p2])
-subForm (Impl (Prop x) (Prop y)) = do
-                                    n <- getRandomInt 6
-                                    k <- getRandomInt 6
-                                    return (Impl (subLiterals n (Prop x)) (subLiterals k (Prop y)))
 subForm (Impl x y) = do
                       p1 <- subForm x
                       p2 <- subForm y
                       return (Impl p1 p2)
-subForm (Equiv (Prop x) (Prop y)) = do
-                                    n <- getRandomInt 6
-                                    k <- getRandomInt 6
-                                    return (Equiv (subLiterals n (Prop x)) (subLiterals k (Prop y)))
 subForm (Equiv x y) = do
                     p1 <- subForm x
                     p2 <- subForm y

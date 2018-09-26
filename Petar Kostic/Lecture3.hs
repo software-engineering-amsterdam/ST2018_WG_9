@@ -105,37 +105,39 @@ data Form = Prop Name
           | Equiv Form Form 
           deriving (Eq,Ord)
 
--- instance Show Form where 
---   show (Prop x)   = show x
---   show (Neg f)    = '-' : show f 
---   show (Cnj fs)     = "*(" ++ showLst fs ++ ")"
---   show (Dsj fs)     = "+(" ++ showLst fs ++ ")"
---   show (Impl f1 f2)  = "(" ++ show f1 ++ "==>" 
---                            ++ show f2 ++ ")"
---   show (Equiv f1 f2)  = "(" ++ show f1 ++ "<=>" 
---                            ++ show f2 ++ ")"
-
 instance Show Form where 
-  show (Prop x)   = filter (/= '\'') $ show (toEnum (96 + x) :: Char)
+  show (Prop x)   = show x
   show (Neg f)    = '-' : show f 
-  show (Cnj fs)     = "(" ++ showLst fs '^' ++ ")"
-  show (Dsj fs)     = "(" ++ showLst fs 'v' ++ ")"
+  show (Cnj fs)     = "*(" ++ showLst fs ++ ")"
+  show (Dsj fs)     = "+(" ++ showLst fs ++ ")"
   show (Impl f1 f2)  = "(" ++ show f1 ++ "==>" 
-                            ++ show f2 ++ ")"
+                           ++ show f2 ++ ")"
   show (Equiv f1 f2)  = "(" ++ show f1 ++ "<=>" 
-                            ++ show f2 ++ ")"
+                           ++ show f2 ++ ")"
 
-showLst, showRest :: [Form] -> Char -> String
-showLst [] c = ""
-showLst (f:fs) c = show f ++ [' ',c] ++ showRest fs c
-showRest [] c = ""
-showRest (f:fs) c = ' ': show f ++ showRest fs c
+showLst,showRest :: [Form] -> String
+showLst [] = ""
+showLst (f:fs) = show f ++ showRest fs
+showRest [] = ""
+showRest (f:fs) = ' ': show f ++ showRest fs
 
--- showLst,showRest :: [Form] -> String
--- showLst [] = ""
--- showLst (f:fs) = show f ++ showRest fs
--- showRest [] = ""
--- showRest (f:fs) = ' ': show f ++ showRest fs
+
+-- instance Show Form where 
+--   show (Prop x)   = filter (/= '\'') $ show (toEnum (96 + x) :: Char)
+--   show (Neg f)    = '-' : show f 
+--   show (Cnj fs)     = "(" ++ showLst fs '^' ++ ")"
+--   show (Dsj fs)     = "(" ++ showLst fs 'v' ++ ")"
+--   show (Impl f1 f2)  = "(" ++ show f1 ++ "==>" 
+--                             ++ show f2 ++ ")"
+--   show (Equiv f1 f2)  = "(" ++ show f1 ++ "<=>" 
+--                             ++ show f2 ++ ")"
+
+-- showLst, showRest :: [Form] -> Char -> String
+-- showLst [] c = ""
+-- showLst (f:fs) c = show f ++ [' ',c] ++ showRest fs c
+-- showRest [] c = ""
+-- showRest (f:fs) c = ' ': show f ++ showRest fs c
+
 
 p = Prop 1
 q = Prop 2
