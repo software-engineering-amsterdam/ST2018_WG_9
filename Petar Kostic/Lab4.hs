@@ -59,45 +59,44 @@ symClos set = unionSet set (inverseRel set)
 inverseRel :: Rel a -> Rel a
 inverseRel (Set rs) = Set (map (\ (x, y) -> (y, x)) rs)
 
--- Exercise 6 - 1,5 hours
+-- | Exercise 6 - 2 hours
 infixr 5 @@
 -- Relational composition, removes all transitive relationships 
 (@@) :: Eq a => Rel a -> Rel a -> Rel a
 (Set r) @@ (Set s) = Set (nub [ (x,z) | (x,y) <- r, (w,z) <- s, y == w ])
 
 -- trClos [(1,2),(2,3),(3,4)] should give [(1,2),(1,3),(1,4),(2,3),(2,4),(3,4)].
-trClos'' :: Ord a => Int -> Rel a -> Rel a 
-trClos'' n r | (state n `unionSet` state (n+1)) == state (n+1) = state n
-             | otherwise                                       = trClos'' (n+1) r
-              where state n' = foldl1 unionSet (take n' (iterate (r @@) r))
+-- trClos'' :: Ord a => Int -> Rel a -> Rel a 
+-- trClos'' n r | (state n `unionSet` state (n+1)) == state (n+1) = state n
+--              | otherwise                                       = trClos'' (n+1) r
+--               where state n' = foldl1 unionSet (take n' (iterate (r @@) r))
                 
-trClos' :: Ord a => Rel a -> Rel a
-trClos' = trClos'' 3
+-- trClos' :: Ord a => Rel a -> Rel a
+-- trClos' = trClos'' 3
 
-------------------------------- Beautify --------------------------------
+
 trClos :: Ord a => Rel a -> Rel a
 trClos set = apprx [foldl1 unionSet (take n rs) | n <- [1..]] 
-           where rs = iterate (set @@) set
+           where rs             = iterate (set @@) set
                  apprx (x:y:zs) = if x == y then x else apprx (y:zs)
-                
-----------------------------------------------------------------------------
 
+-- | Exercise 7 - 
 
 main :: IO ()
 main = do print "------------- TEST RUNNER -----------------" 
-          print "-------------- EXERCISE 2 -----------------"
-          print "Exercise 2 - Generator"
+          print "| ============ EXERCISE 2 ================|"
+          print "|------------- Generator------------------|"
           generate arbitrary :: IO (Set Int)
-          print "Exercise 2 - Property: noDuplicates"
+          print "| -------- Property: noDuplicates --------|"
           quickCheck noDuplicates
-          print "Exercise 2 - Property: isOrdered"
+          print "| --------- Property: isOrdered ----------|"
           quickCheck isOrdered
-          print "-------------- EXERCISE 3 -----------------"
-          print "Exercise 3 - Property: intersectSet"
+          print "|============= EXERCISE 3 ================|"
+          print "|-------- Property: intersectSet ---------|"
           quickCheck propIntersectSet
-          print "Exercise 3 - Property: unionSet"
+          print "|----------- Property: unionSet ----------|"
           quickCheck propUnionSet
-          print "Exercise 3 - Property: propDifferenceSet"
+          print "|------- Property: propDifferenceSet -----|"
           quickCheck propDifferenceSet
-          print "-------------- EXERCISE 7 -----------------"
+          print "|============ EXERCISE 7 ================|"
           
