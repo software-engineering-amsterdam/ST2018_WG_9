@@ -4,7 +4,7 @@ import Data.List
 import System.Random
 import Test.QuickCheck
 import SetOrd
-
+import Lecture4
 -- | Exercise 1
 
 
@@ -59,24 +59,33 @@ symClos set = unionSet set (inverseRel set)
 inverseRel :: Rel a -> Rel a
 inverseRel (Set rs) = Set (map (\ (x, y) -> (y, x)) rs)
 
--- Exercise 6 - 
+-- Exercise 6 - 1,5 hours
 infixr 5 @@
--- Removes all transitive relationshops 
+-- Relational composition, removes all transitive relationships 
 (@@) :: Eq a => Rel a -> Rel a -> Rel a
 (Set r) @@ (Set s) = Set (nub [ (x,z) | (x,y) <- r, (w,z) <- s, y == w ])
 
--- trClos [(1,2),(2,3),(3,4)] should give  [(1,2),(1,3),(1,4),(2,3),(2,4),(3,4)].
-trClos' :: Ord a => Int -> Rel a -> [Rel a] 
-trClos' set@(Set rs) n = takeWhile ((state n `setDifference` (state n + 1)) == Set [])
-                        where state = iterate (set @@) set
+-- trClos [(1,2),(2,3),(3,4)] should give [(1,2),(1,3),(1,4),(2,3),(2,4),(3,4)].
+trClos'' :: Ord a => Int -> Rel a -> Rel a 
+trClos'' n r | (state n `unionSet` state (n+1)) == state (n+1) = state n
+             | otherwise                                       = trClos'' (n+1) r
+              where state n' = foldl1 unionSet (take n' (iterate (r @@) r))
+                
+trClos' :: Ord a => Rel a -> Rel a
+trClos' = trClos'' 3
 
-trClos :: Ord 
+------------------------------- Beautify --------------------------------
+trClos :: Ord a => Rel a -> Rel a
+trClos set = apprx [foldl1 unionSet (take n rs) | n <- [1..]] 
+           where rs = iterate (set @@) set
+                 apprx (x:y:zs) = if x == y then x else apprx (y:zs)
+                
+----------------------------------------------------------------------------
 
-testSet :: Rel Int
-testSet = Set [(1,2),(2,3),(3,4)]
 
 main :: IO ()
-main = do print "-------------- EXERCISE 2 -----------------"
+main = do print "------------- TEST RUNNER -----------------" 
+          print "-------------- EXERCISE 2 -----------------"
           print "Exercise 2 - Generator"
           generate arbitrary :: IO (Set Int)
           print "Exercise 2 - Property: noDuplicates"
@@ -90,5 +99,5 @@ main = do print "-------------- EXERCISE 2 -----------------"
           quickCheck propUnionSet
           print "Exercise 3 - Property: propDifferenceSet"
           quickCheck propDifferenceSet
-          print "-------------- EXERCISE 5 -----------------"
+          print "-------------- EXERCISE 7 -----------------"
           
