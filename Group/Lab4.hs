@@ -8,13 +8,12 @@ import SetOrd
 set2list :: Set a -> [a]
 set2list (Set xs) = xs
 
--- Exercise 1 --
+-- | Exercise 1 --
 
 -- 1) Antisymmetry is still somewhat unclear to me
--- 2) Is {a, b, b} a valid set?
--- 3) 
+-- 2) Is {a, b, b} a valid set? 
 
--- Exercise 2 --
+-- | Exercise 2 --
 
 -- Arbitrary instance for Set a.
 -- Apply list2set to an arbitrary list of a.
@@ -44,7 +43,7 @@ ex2quickCheck = do
                 putStrLn "propSetDuplicates"
                 quickCheck propSetDuplicates
 
--- Exercise 3 --
+-- | Exercise 3 --
 
 -- Set union has already been defined in SetOrd.hs!
 -- For your benefit, we included another implementation.
@@ -83,15 +82,16 @@ propSetDiff (Set a) (Set b) = all (\x -> x `elem` a && x `notElem` b) diff
 ex3quickCheck :: IO ()
 ex3quickCheck = do
                 putStrLn "propSetUnion"
-                quickCheck propSetIntersect
+                quickCheck propSetUnion
                 putStrLn "propSetIntersect"
                 quickCheck propSetIntersect
                 putStrLn "propSetDiff"
                 quickCheck propSetDiff
 
--- Exercise 5 --
+-- | Exercise 5 --
 
--- Define Rel as a Set, to keep using Set operations.
+-- Define Rel as a Set, to keep using Set operations and to be able to use the above implemented
+-- operations.
 type Rel a = Set (a,a)
 
 -- The symmetric closure of a relation R is defined as: R ∪ R⁻¹.
@@ -105,7 +105,7 @@ inverse (Set rs) = Set (map invert rs)
 invert :: (a, a) -> (a, a)
 invert (x, y) = (y, x)
 
--- Exercise 6 --
+-- | Exercise 6 --
 
 -- Relational composition
 infixr 5 @@
@@ -118,12 +118,12 @@ infixr 5 @@
 -- adding all the transitive relations from the set to the set every iteration.
 -- Once the difference of the transitivity of the set with the accumulator is empty, we know nothing new is being added to the
 -- accumulator, so we can terminate the function.
-trClos :: Ord a => Rel a -> Rel a 
-trClos set = clos set set
-    where clos rel acc | diffSet (rel @@ acc) acc == Set [] = acc
-                       | otherwise = clos (rel @@ acc) (unionSet (rel @@ acc) acc)
+trClos :: Ord a => Rel a -> Rel a
+trClos set = apprx [foldl1 unionSet (take n rs) | n <- [1..]] 
+           where rs             = iterate (set @@) set
+                 apprx (x:y:zs) = if x == y then x else apprx (y:zs)
 
--- Exercise 7 --
+-- | Exercise 7 --
 -- Test report: I thought of properties on symmetrical closures and transitive closures, then defined those
 -- as functions of type Rel Int -> Bool, to use them with quickCheck. In 'propTrClos', the method used for checking
 -- if the Relation is transitive is very similar to the definition of relational composition (@@) above, which comes
@@ -158,7 +158,7 @@ ex7quickCheck = do
                 putStrLn "propTrClos"
                 quickCheck propTrClos
 
--- Exercise 8 --
+-- | Exercise 8 --
 
 testSet :: Rel Int
 testSet = Set [(1,2),(2,3),(3,4)] 
@@ -167,9 +167,8 @@ testSet = Set [(1,2),(2,3),(3,4)]
 -- then shows the difference. The difference is not the empty set, therefore the order of application
 -- matters. This is a counter example, the lemma does not hold.
 closureDiff :: IO ()
-closureDiff = do
-    let ts = (trClos . symClos) testSet
-    let st = (symClos . trClos) testSet
-    putStrLn $ "A = " ++ show ts
-    putStrLn $ "B = " ++ show st
-    putStrLn $ "A - B = " ++ show (diffSet ts st)
+closureDiff = do let ts = (trClos . symClos) testSet
+                 let st = (symClos . trClos) testSet
+                 putStrLn $ "A = "     ++ show ts
+                 putStrLn $ "B = "     ++ show st
+                 putStrLn $ "A - B = " ++ show (diffSet ts st)
