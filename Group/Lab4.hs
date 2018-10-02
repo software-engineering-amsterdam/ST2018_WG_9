@@ -12,6 +12,7 @@ set2list (Set xs) = xs
 
 -- 1) Antisymmetry is still somewhat unclear to me
 -- 2) Is {a, b, b} a valid set? 
+-- 3) Does symmetry imply reflectivity?
 
 -- | Exercise 2 --
 
@@ -87,6 +88,8 @@ ex3quickCheck = do
                 quickCheck propSetIntersect
                 putStrLn "propSetDiff"
                 quickCheck propSetDiff
+-- | Exercise 4
+-- Nothing really catched our eye that we couldn't figure out ourselves. 
 
 -- | Exercise 5 --
 
@@ -118,6 +121,7 @@ infixr 5 @@
 -- adding all the transitive relations from the set to the set every iteration.
 -- Once the difference of the transitivity of the set with the accumulator is empty, we know nothing new is being added to the
 -- accumulator, so we can terminate the function.
+
 trClos :: Ord a => Rel a -> Rel a
 trClos set = apprx [foldl1 unionSet (take n rs) | n <- [1..]] 
            where rs             = iterate (set @@) set
