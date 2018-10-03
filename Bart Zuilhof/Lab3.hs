@@ -10,8 +10,8 @@ module Lab3 where
     form4, form5, form6, form7 :: Form
     form4 = Dsj [Neg p, p] -- Tautologie
     form5 = Cnj [p, Neg p] -- Contradiction 
-    form6 = Cnj [p,q] -- Satifiable    
-    form7 = Cnj [q,p] -- Satifiable    
+    form6 = Cnj [p,q] -- Satisfiable    
+    form7 = Cnj [q,p] -- Satisfiable    
 
     -- Implementation of contradiction,
     -- will return true if all of the valuations of the form result into false
@@ -39,7 +39,7 @@ module Lab3 where
     forms = [form5, form6, form7]
     
     parseTest :: [Form] -> Bool
-    parseTest = all (\ form -> equiv ((head . parse . show) form) form)
+    parseTest = all (\form -> equiv ((head . parse . show) form) form)
 
     -- Exercise 3
     -- Time spent: 60min
@@ -59,7 +59,7 @@ module Lab3 where
                             | otherwise = valToForm xs (Neg (Prop (fst x)):acc) 
 
     -- Exercise 4
-    -- Time spent: 
+    -- Time spent: 90min
 
     
     isCNF :: Form -> Bool
@@ -98,13 +98,14 @@ module Lab3 where
     possibleLiteral 4 (Prop n) = Equiv (Prop n) (Prop n)
     possibleLiteral 5 (Prop n) = Neg(Prop n)
     
-    testR :: Int -> Int -> IO ()
-    testR k n = if k == n then print (show n ++ " tests passed")
+
+    testRunner :: Int -> Int -> IO ()
+    testRunner k n = if k == n then print (show n ++ " tests passed")
                 else do
                   form <- formGenerator
                   if isCNF (convertToCNF form) then
                     do print ("pass on: " ++ show form)
-                       testR (k+1) n
+                       testRunner (k+1) n
                   else error ("failed test on: " ++ show form)
 
     

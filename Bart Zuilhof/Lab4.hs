@@ -21,6 +21,7 @@ checkDuplicates (Set []) _ = True
 checkDuplicates (Set (x:xs)) seen   | x `elem` seen = False
                                     | otherwise = checkDuplicates (Set (xs)) (x:seen)
 checkSorted :: Set Int -> Bool 
+
 checkSorted (Set xs) = sort xs == xs
 
 -- Exercise 3
@@ -78,7 +79,8 @@ trClos' rel acc | setDifference (rel @@ acc) acc == Set [] = acc
                 | otherwise = trClos' (rel @@ acc) (setUnion acc (rel @@ acc))
 
 -- Exercise 7  
--- Time spent: 15min              --                                
+-- Time spent: 15min              --              
+-- This function tests if the inverse of all tuples are present in the set                   
 testSymClos :: Ord a => Rel a -> Bool
 testSymClos rel = all (\(x,y) -> elem (y,x) symClosure) symClosure
         where symClosure = setToList (symClos rel)
