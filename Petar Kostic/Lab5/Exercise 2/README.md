@@ -32,9 +32,9 @@ freeAtPos s (r,c) = (freeInRow s r) `intersect` (freeInColumn s c) `intersect` (
 
 If we compare the implementation of `freeAtPos` with `freeAtPos'`, we see multiple recurring elements that have been made easier
 
-..* `freeInSeq`'s difference function moved to the function of the `map`
-..* `intersect` moved to the function of the `foldl1`
-..* List comprehension that denote the constraint as an argument of `freeAtPos'`
+* `freeInSeq`'s difference function moved to the function of the `map`  
+* `intersect` moved to the function of the `foldl1`  
+* List comprehension that denote the constraint as an argument of `freeAtPos'`  
 
 This means that, where `freeAtPos'` is called, the constraints have to be defined there. This is where the following come in:
 ``` haskell
