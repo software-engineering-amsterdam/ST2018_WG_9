@@ -15,10 +15,10 @@ positions, values :: [Int]
 positions = [1..9]
 values    = [1..9] 
 
--- blocks, nrcBlocks :: [[Int]]
--- blocks = [[1..3],[4..6],[7..9]]
--- nrcBlocks =  [[2..4],
---               [6..8]]
+blocks, nrcBlocks :: [[Int]]
+blocks = [[1..3],[4..6],[7..9]]
+nrcBlocks =  [[2..4],
+              [6..8]]
 
 showVal :: Value -> String
 showVal 0 = " "
@@ -125,12 +125,6 @@ freeAtPos s (r,c) =
    `intersect` (freeInColumn s c) 
    `intersect` (freeInSubgrid s (r,c)) 
    `intersect` (freeInNRCgrid s (r,c)) 
-
-freeAtPos' :: Sudoku -> Position -> Constrnt -> [Value]
-freeAtPos' s (r,c) xs = let 
-    ys = filter (elem (r,c)) xs 
-  in 
-    foldl1 intersect (map ((values \\) . map s) ys)
    
 
 injective :: Eq a => [a] -> Bool
@@ -213,14 +207,10 @@ openPositions s = [ (r,c) | r <- positions,
 length3rd :: (a,b,[c]) -> (a,b,[c]) -> Ordering
 length3rd (_,_,zs) (_,_,zs') = compare (length zs) (length zs')
 
--- constraints :: Sudoku -> [Constraint] 
--- constraints s = sortBy length3rd 
---     [(r,c, freeAtPos s (r,c)) | 
---                        (r,c) <- openPositions s ]
-
 constraints :: Sudoku -> [Constraint] 
 constraints s = sortBy length3rd 
-    [(r,c, freeAtPos' s (r,c) constrnts)  | (r,c) <- openPositions s]
+    [(r,c, freeAtPos s (r,c)) | 
+                       (r,c) <- openPositions s ]
 
 data Tree a = T a [Tree a] deriving (Eq,Ord,Show)
 
@@ -407,19 +397,3 @@ main = do [r] <- rsolveNs [emptyN]
           s  <- genProblem r
           showNode s
 
-type Position = (Row,Column)
-type Constrnt = [[Position]]
-rowConstrnt, columnConstrnt, blockConstrnt :: Constrnt
-rowConstrnt = [[(r,c)| c <- values ] | r <- values ]
-columnConstrnt = [[(r,c)| r <- values ] | c <- values ]
-blockConstrnt = [[(r,c)| r <- b1, c <- b2 ] | b1 <- blocks, b2 <- blocks ]
-nrcBlockConstrnt = [[(r,c)| r <- b1, c <- b2 ] | b1 <- nrcBlocks, b2 <- nrcBlocks ]
-
-constrnts :: Constrnt
-constrnts = rowConstrnt ++ columnConstrnt ++ blockConstrnt ++ nrcBlockConstrnt
-
-
-
-
-
-          
