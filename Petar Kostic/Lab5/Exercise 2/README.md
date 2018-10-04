@@ -76,4 +76,6 @@ bl x = concat $ filter (elem x) blocks
 nrcbl :: Int -> [Int]
 nrcbl x = concat $ filter (elem x) nrcBlocks
 ```
-Essentially, the trade-off is between readability and conciseness of the code and performance. 
+Essentially, the trade-off is between readability and conciseness of the code and performance.   
+
+The refactor is not complete yet since the `prune` and `nrcSubGridInjective` functions still uses `nrcSubGrid`. We will address this if we have additional time. 
