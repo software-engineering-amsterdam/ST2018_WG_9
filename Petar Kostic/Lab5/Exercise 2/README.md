@@ -1,4 +1,5 @@
 # Exercise 2 - Petar Kostic (12294705)
+## Changes made in regards to Exercise 1
 ``` haskell
 type Position = (Row,Column)
 type Constrnt = [[Position]]
@@ -56,3 +57,23 @@ Note the addition of a constraint `blockNrcConstrnt`, that defined the constrnt 
 blockNrcConstrnt :: [[Position]]
 blockNrcConstrnt = [[(r,c)| r <- b1, c <- b2 ] | b1 <- nrcBlocks, b2 <- nrcBlocks ]
 ```
+
+## Comments on extendability and efficiency.
+The original implementation of `freeAtPos` was more efficient when compared to `freeAtPos'`.  `freeAtPos'` uses an extra `map` that adds an O(n) to the runtime of the algorithm. Additionally, `filter (elem (r,c)) xs` was originally only present in `subGrid` and `nrcSubGrid`, now it aslo gets performed on the values of the other constraints.
+
+``` haskell 
+subGrid :: Sudoku -> (Row,Column) -> [Value]
+subGrid s (r,c) = [ s (r',c') | r' <- bl r, c' <- bl c ]
+
+nrcSubGrid :: Sudoku -> (Row, Column) -> [Value]
+nrcSubGrid s (r,c) = [s (r',c') | r' <- nrcbl r, c' <- nrcbl c ]
+```
+Where bl and nrcbl are defined as follows
+``` haskell
+bl :: Int -> [Int]
+bl x = concat $ filter (elem x) blocks 
+
+nrcbl :: Int -> [Int]
+nrcbl x = concat $ filter (elem x) nrcBlocks
+```
+Essentially, the trade-off is between readability and conciseness of the code and performance. 
