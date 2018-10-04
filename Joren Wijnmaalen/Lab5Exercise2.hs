@@ -1,5 +1,5 @@
 
-module Lecture5
+module Lab5Exercise2
 
 where 
 
@@ -10,6 +10,9 @@ type Row    = Int
 type Column = Int 
 type Value  = Int
 type Grid   = [[Value]]
+type Position = (Row, Column)
+type Constrnt = [[Position]]
+
 
 positions, values :: [Int]
 positions = [1..9]
@@ -19,7 +22,8 @@ blocks :: [[Int]]
 blocks = [[1..3],[4..6],[7..9]]
 
 nrcBlocks :: [[Int]]
-nrcBlocks = [[2..4],[6..8]]
+nrcBlocks = [[2..4],
+             [6..8]]
 
 showVal :: Value -> String
 showVal 0 = " "
@@ -41,35 +45,14 @@ showRow [a1,a2,a3,a4,a5,a6,a7,a8,a9] =
      putStr (showVal a9) ; putChar ' '
      putChar '|'         ; putChar '\n'
 
-showRow2 :: IO()
-showRow2 = putStrLn "|  +----|--+ +--|----+  |"
-
-showRow3 :: [Value] -> IO()
-showRow3 [a1,a2,a3,a4,a5,a6,a7,a8,a9] = 
-    do putChar '|'; putChar ' '
-       putStr (showVal a1) ; putChar '|'
-       putStr (showVal a2) ; putChar ' '
-       putStr (showVal a3) ; putChar ' '
-       putChar '|' ; putChar ' ';
-       putStr (showVal a4) ; putChar '|'
-       putStr (showVal a5) ; putChar '|'
-       putStr (showVal a6) ; putChar ' '
-       putChar '|' ; putChar ' '
-       putStr (showVal a7) ; putChar ' '
-       putStr (showVal a8) ; putChar '|'
-       putStr (showVal a9) ; putChar ' '; putChar '|';
-       putChar '\n'
-
-
-
 showGrid :: Grid -> IO()
 showGrid [as,bs,cs,ds,es,fs,gs,hs,is] =
  do putStrLn ("+-------+-------+-------+")
-    showRow as; showRow2; showRow3 bs; showRow3 cs
+    showRow as; showRow bs; showRow cs
     putStrLn ("+-------+-------+-------+")
-    showRow3 ds; showRow2; showRow es; showRow2; showRow3 fs
+    showRow ds; showRow es; showRow fs
     putStrLn ("+-------+-------+-------+")
-    showRow3 gs; showRow3 hs; showRow2; showRow is
+    showRow gs; showRow hs; showRow is
     putStrLn ("+-------+-------+-------+")
 
 type Sudoku = (Row,Column) -> Value
@@ -90,15 +73,16 @@ showSudoku = showGrid . sud2grid
 bl :: Int -> [Int]
 bl x = concat $ filter (elem x) blocks 
 
-nrcbl :: Int -> [Int]
-nrcbl x = concat $ filter (elem x) nrcBlocks 
+nrcBl :: Int -> [Int]
+nrcBl x = concat $ filter (elem x) nrcBlocks 
 
 subGrid :: Sudoku -> (Row,Column) -> [Value]
 subGrid s (r,c) = 
   [ s (r',c') | r' <- bl r, c' <- bl c ]
 
-nrcGrid :: Sudoku -> (Row,Column) -> [Value]
-nrcGrid s (r,c) = [ s (r',c') | r' <- nrcbl r, c' <- nrcbl c ]
+nrcSubGrid :: Sudoku -> Position -> [Value]
+nrcSubGrid s (r,c) = 
+  [ s (r',c') | r' <- nrcBl r, c' <- nrcBl c ]
 
 freeInSeq :: [Value] -> [Value]
 freeInSeq seq = values \\ seq 
@@ -114,16 +98,24 @@ freeInColumn s c =
 freeInSubgrid :: Sudoku -> (Row,Column) -> [Value]
 freeInSubgrid s (r,c) = freeInSeq (subGrid s (r,c))
 
-freeInNRCgrid :: Sudoku -> (Row,Column) -> [Value]
-freeInNRCgrid s (r,c) = freeInSeq (nrcGrid s (r,c))
+freeInNRCSubGrid :: Sudoku -> Position -> [Value]
+freeInNRCSubGrid s (r, c) = freeInSeq (nrcSubGrid s (r,c))
 
--- All values allowed at (row,column)
-freeAtPos :: Sudoku -> (Row,Column) -> [Value]
-freeAtPos s (r,c) = 
-  (freeInRow s r) 
-   `intersect` (freeInColumn s c) 
-   `intersect` (freeInSubgrid s (r,c)) 
-   `intersect` (freeInNRCgrid s (r,c))
+rowConstrnt, columnConstrnt, blockConstrnt :: Constrnt
+rowConstrnt = [[(r,c)| c <- values ] | r <- values ]
+columnConstrnt = [[(r,c)| r <- values ] | c <- values ]
+blockConstrnt = [[(r,c)| r <- b1, c <- b2 ] | b1 <- blocks, b2 <- blocks ]
+nrcConstrnt = [[(r,c)| r <- b1, c <- b2 ] | b1 <- nrcBlocks, b2 <- nrcBlocks ]
+
+constrnts :: Constrnt
+constrnts = rowConstrnt ++ columnConstrnt ++ blockConstrnt ++ nrcConstrnt
+
+freeAtPos' :: Sudoku -> Position -> Constrnt -> [Value]
+freeAtPos' s (r,c) [] = []
+freeAtPos' s (r,c) xs = let 
+    ys = filter (elem (r,c)) xs 
+  in 
+    foldl1 intersect (map ((values \\) . map s) ys)
 
 injective :: Eq a => [a] -> Bool
 injective xs = nub xs == xs
@@ -140,11 +132,10 @@ subgridInjective :: Sudoku -> (Row,Column) -> Bool
 subgridInjective s (r,c) = injective vs where 
    vs = filter (/= 0) (subGrid s (r,c))
 
-nrcSubgridInjective :: Sudoku -> (Row,Column) -> Bool
-nrcSubgridInjective s (r,c) = injective vs where
-    vs = filter (/= 0) (nrcGrid s (r,c))
+nrcSubGridInjective :: Sudoku -> Position -> Bool
+nrcSubGridInjective s (r,c) = injective vs where
+   vs = filter (/= 0) (nrcSubGrid s (r,c))
 
--- Should hold across the whole sudoku
 consistent :: Sudoku -> Bool
 consistent s = and $
                [ rowInjective s r |  r <- positions ]
@@ -154,8 +145,8 @@ consistent s = and $
                [ subgridInjective s (r,c) | 
                     r <- [1,4,7], c <- [1,4,7]]
                 ++
-               [ nrcSubgridInjective s (r,c) | 
-                    r <- [2,6], c <- [2,6]]
+               [ nrcSubGridInjective s (r,c) | 
+                    r <- [3,7], c <- [3,7]]
 
 extend :: Sudoku -> ((Row,Column),Value) -> Sudoku
 extend = update
@@ -187,10 +178,15 @@ prune (r,c,v) ((x,y,zs):rest)
   | c == y = (x,y,zs\\[v]) : prune (r,c,v) rest
   | sameblock (r,c) (x,y) = 
         (x,y,zs\\[v]) : prune (r,c,v) rest
+  | sameNrcBlock (r,c) (x,y) =
+        (x,y,zs\\[v]) : prune (r,c,v) rest
   | otherwise = (x,y,zs) : prune (r,c,v) rest
 
 sameblock :: (Row,Column) -> (Row,Column) -> Bool
 sameblock (r,c) (x,y) = bl r == bl x && bl c == bl y 
+
+sameNrcBlock :: Position -> Position -> Bool
+sameNrcBlock (r,c) (x,y) = nrcBl r == nrcBl x && nrcBl c == nrcBl y 
 
 initNode :: Grid -> [Node]
 initNode gr = let s = grid2sud gr in 
@@ -205,11 +201,17 @@ openPositions s = [ (r,c) | r <- positions,
 length3rd :: (a,b,[c]) -> (a,b,[c]) -> Ordering
 length3rd (_,_,zs) (_,_,zs') = compare (length zs) (length zs')
 
--- What can still be filled in
-constraints :: Sudoku -> [Constraint] 
+-- Constrained to the possible solutions
+-- constraints' :: Sudoku -> [Constraint] 
+-- constraints' s = sortBy length3rd 
+--     [(r,c, freeAtPos s (r,c)) | 
+--                        (r,c) <- openPositions s ]
+
+constraints :: Sudoku -> [Constraint]
 constraints s = sortBy length3rd 
-    [(r,c, freeAtPos s (r,c)) | 
-                       (r,c) <- openPositions s ]
+    [(r,c, freeAtPos' s (r,c) constrnts) | 
+                   (r,c) <- openPositions s ]
+
 
 data Tree a = T a [Tree a] deriving (Eq,Ord,Show)
 
