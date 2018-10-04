@@ -40,7 +40,8 @@ solveNrc = solveAndShow exampleNRC
 
 -- EXERCISE 2 --
 -- 1h
--- TODO: Test
+-- The refactor can still be improved by decoupling the prune function
+-- This is however outside the scope of the exercise.
 
 -- EXERCISE 3 --
 -- 30 mins
@@ -130,3 +131,7 @@ randomBlock ps = do index <- getRandomInt (length ps - 1)
                     where   removeItem _ []                 = []
                             removeItem x (y:ys) | x == y    = removeItem x ys
                                                 | otherwise = y : removeItem x ys
+
+-- EXERCISE 5 --
+-- The generator uses the checker of the lecture code to generate sudoku's
+-- Therefore if the nrc constraints are enabled, an nrc problem will be generated.
