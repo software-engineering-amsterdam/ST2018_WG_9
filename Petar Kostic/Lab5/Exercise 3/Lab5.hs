@@ -29,35 +29,30 @@ isMinimal = do node <- genRandomSudoku >>= genProblem
 -- to something that takes 
 
 -- | Exercise 4
-
-
-
 -- randomBlock (grid2sud example1)
 combs :: [Position]
 combs = [(a,b) | a <- [1..3], b <- [1..3]]
 
 remove3RandomBlocks :: IO ()
 remove3RandomBlocks = do -- First block
-                      (sudoku, cons) <- genRandomSudoku
+                      (sudoku, _) <- genRandomSudoku
                       pos1 <- getRandomItem' combs
-                      let removed = removePos sudoku pos1
                       -- Second block
                       let deletedList = delete' pos1 combs
                       pos2 <- getRandomItem' (delete' pos1 combs)
-                      let removed2 = removePos removed pos2
                       -- Third block
                       let deletedList2 = delete' pos2 deletedList
                       pos3 <- getRandomItem' deletedList2
-                      let removed3 = removePos removed2 pos3
-                      problem <- genProblem (removed3, constraints removed3)
+                      let removed = removePos sudoku [pos3, pos2, pos1]
+                      problem <- genProblem (removed, constraints removed)
                       showNode problem
+-- genProblem guarantees a minimal solution for the sudoku with removed numbers
 
 getSubGridPos :: Position -> [Position]
 getSubGridPos pos = [(r,c) | r <- bl (fst pos * 3), c <- bl (snd pos * 3)]
 
-
-removePos :: Sudoku -> Position -> Sudoku
-removePos s pos = foldl eraseS s (getSubGridPos pos)    
+removePos :: Sudoku -> [Position] -> Sudoku
+removePos s pos = foldl eraseS s (concatMap getSubGridPos pos) 
 
 delete' :: Position -> [Position] -> [Position]
 delete' pos xs = [ x | x <- xs, x /= pos ]
@@ -90,39 +85,42 @@ getRandomItem' xs = do n <- getRandomInt maxi
 
 remove4RandomBlocks :: IO ()
 remove4RandomBlocks = do -- First block
-                      (sudoku, cons) <- genRandomSudoku
+                      (sudoku, _) <- genRandomSudoku
                       pos1 <- getRandomItem' combs
-                      let removed = removePos sudoku pos1
                       -- Second block
                       let deletedList = delete' pos1 combs
                       pos2 <- getRandomItem' (delete' pos1 combs)
-                      let removed2 = removePos removed pos2
                       -- Third block
                       let deletedList2 = delete' pos2 deletedList
                       pos3 <- getRandomItem' deletedList2
-                      let removed3 = removePos removed2 pos3
                       -- Fourth block
                       let deletedList3 = delete' pos3 deletedList2
                       pos4 <- getRandomItem' deletedList3
-                      let removed4 = removePos removed3 pos4
-                      problem <- genProblem (removed4, constraints removed4)
+                      let removed = removePos sudoku [pos3, pos2, pos1, pos4]
+                      problem <- genProblem (removed, constraints removed)
                       showNode problem
+                      [r] <- rsolveNs [problem]
+                      showNode r
 
+    
 -- *Lab5> remove4RandomBlocks
 -- +-------+-------+-------+
--- | 9     |       |   7   |
+-- |   1   |       |     3 |
 -- |  +----|--+ +--|----+  |
--- | 8|  3 |  | |  |   5|  |
--- |  |    |  | |  |   1|9 |
+-- |  |    |  | |  | 5  |7 |
+-- |  |  9 |  | |  |   2|  |
 -- +-------+-------+-------+
--- |  |  1 | 5| |  |    |  |
+-- | 8|  3 |  | |  |    |  |
 -- |  +----|--+ +--|----+  |
--- |   4 2 |       |       |
+-- | 6     | 2 4   |       |
 -- |  +----|--+ +--|----+  |
--- | 5|  7 |  |4|  |    |  |
+-- |  |    | 9| |5 |    |  |
 -- +-------+-------+-------+
--- |  |    |  | |6 |    |  |
--- |  |    | 4| |  |    |  |
+-- | 7|    |  | |  |    |  |
+-- |  |3   |  | |  |    |  |
 -- |  +----|--+ +--|----+  |
--- |       |       |       |
+-- |     4 |       |       |
 -- +-------+-------+-------+
+
+-- Exercise 5
+-- Everything thus far has been for NRC problems
