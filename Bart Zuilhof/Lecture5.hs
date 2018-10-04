@@ -40,14 +40,41 @@ showRow [a1,a2,a3,a4,a5,a6,a7,a8,a9] =
      putStr (showVal a9) ; putChar ' '
      putChar '|'         ; putChar '\n'
 
+showRow' :: [Value] -> IO()
+showRow' [a1,a2,a3,a4,a5,a6,a7,a8,a9] = 
+ do  putChar '|'         ; putChar ' '
+     putStr (showVal a1) ; putChar ' '
+     putChar '|'         ; putChar ' '
+     putStr (showVal a2) ; putChar ' '
+     putStr (showVal a3) ; putChar ' '
+     putChar '|'         ; putChar ' '
+     putStr (showVal a4) ; putChar ' '
+     putStr (showVal a5) ; putChar ' '
+     putStr (showVal a6) ; putChar ' '
+     putChar '|'         ; putChar ' '
+     putStr (showVal a7) ; putChar ' '
+     putStr (showVal a8) ; putChar ' '
+     putStr (showVal a9) ; putChar ' '
+     putChar '|'         ; putChar '\n'
+
 showGrid :: Grid -> IO()
 showGrid [as,bs,cs,ds,es,fs,gs,hs,is] =
  do putStrLn ("+-------+-------+-------+")
-    showRow as; showRow bs; showRow cs
+    showRow as;
+    putStrLn ("|   +----+-------+----+  |") 
+    showRow' bs; 
+    showRow' cs
     putStrLn ("+-------+-------+-------+")
-    showRow ds; showRow es; showRow fs
+    showRow' ds; 
+    putStrLn ("|   +----+-------+----+  |") 
+    showRow es; 
+    putStrLn ("|   +----+-------+----+  |") 
+    showRow' fs
     putStrLn ("+-------+-------+-------+")
-    showRow gs; showRow hs; showRow is
+    showRow' gs; 
+    showRow' hs; 
+    putStrLn ("|   +----+-------+----+  |")
+    showRow is
     putStrLn ("+-------+-------+-------+")
 
 type Sudoku = (Row,Column) -> Value
@@ -114,6 +141,10 @@ subgridInjective :: Sudoku -> (Row,Column) -> Bool
 subgridInjective s (r,c) = injective vs where 
    vs = filter (/= 0) (subGrid s (r,c))
 
+nrcgridInjective :: Sudoku -> (Row,Column) -> Bool
+nrcgridInjective s (r,c) = injective vs where 
+   vs = filter (/= 0) (nrcGrid s (r,c))
+
 consistent :: Sudoku -> Bool
 consistent s = and $
                [ rowInjective s r |  r <- positions ]
@@ -121,7 +152,11 @@ consistent s = and $
                [ colInjective s c |  c <- positions ]
                 ++
                [ subgridInjective s (r,c) | 
-                    r <- [1,4,7], c <- [1,4,7]]
+                r <- [1,4,7], c <- [1,4,7]]
+                ++ 
+               [ nrcgridInjective s (r,c) |
+                r <- [2,6], c <- [2,6]]
+                  
 
 extend :: Sudoku -> ((Row,Column),Value) -> Sudoku
 extend = update
@@ -182,7 +217,6 @@ exmple1 = T 1 [T 2 [], T 3 []]
 exmple2 = T 0 [exmple1,exmple1,exmple1]
 
 grow :: (node -> [node]) -> node -> Tree node 
-
 grow step seed = T seed (map (grow step) (step seed))
 
 count :: Tree a -> Int 
