@@ -22,12 +22,14 @@ blocks = [[1..3],[4..6],[7..9]]
 
 nrcBlocks :: [[Int]]
 nrcBlocks = [[2..4],[6..8]]
+
 -- Note that a zero is encoded as a value that is not
 -- yet defined
 showVal :: Value -> String
 showVal 0 = " "
 showVal d = show d
 
+-- Define my own show function to show the new subgrids
 showRow :: [Value] -> IO()
 showRow [a1,a2,a3,a4,a5,a6,a7,a8,a9] = 
  do  putChar '|'         ; putChar ' '
@@ -134,8 +136,8 @@ colInjective s c = injective vs where
    vs = filter (/= 0) [ s (i,c) | i <- positions ]
 
 subgridInjective :: Sudoku -> (Row,Column) -> Bool
-subgridInjective s (r,c) = injective vs where 
-   vs = filter (/= 0) (subGrid s (r,c))
+subgridInjective s (r,c) = injective vs 
+                         where vs = filter (/= 0) (subGrid s (r,c))
 
 nrcSubGridInjective :: Sudoku -> (Row, Column) -> Bool
 nrcSubGridInjective s (r,c) = injective vs
@@ -172,14 +174,18 @@ extendNode (s,constraints) (r,c,vs) = [(extend s ((r,c),v), sortBy length3rd $ p
 
 -- If one tree branch is the same configuration, remove it
 prune :: (Row,Column,Value) -> [Constraint] -> [Constraint]
-prune _ []                                            = []
-prune (r,c,v) ((x,y,zs):rest) | r == x                = (x,y,zs\\[v]) : prune (r,c,v) rest
-                              | c == y                = (x,y,zs\\[v]) : prune (r,c,v) rest
-                              | sameblock (r,c) (x,y) = (x,y,zs\\[v]) : prune (r,c,v) rest
-                              | otherwise             = (x,y,zs)      : prune (r,c,v) rest
+prune _ []                                               = []
+prune (r,c,v) ((x,y,zs):rest) | r == x                   = (x,y,zs\\[v]) : prune (r,c,v) rest
+                              | c == y                   = (x,y,zs\\[v]) : prune (r,c,v) rest
+                              | sameblock (r,c) (x,y)    = (x,y,zs\\[v]) : prune (r,c,v) rest
+                              | sameblockNRC (r,c) (x,y) = (x,y,zs\\[v]) : prune (r,c,v) rest
+                              | otherwise                = (x,y,zs)      : prune (r,c,v) rest
 
 sameblock :: (Row,Column) -> (Row,Column) -> Bool
-sameblock (r,c) (x,y) = bl r == bl x && bl c == bl y 
+sameblock (r,c) (x,y) = bl r == bl x && bl c == bl y
+
+sameblockNRC :: (Row, Column) -> (Row,Column) -> Bool
+sameblockNRC (r,c) (x,y) = nrcbl r == nrcbl x && nrcbl c == nrcbl y
 
 initNode :: Grid -> [Node]
 initNode gr = let s = grid2sud gr in 
