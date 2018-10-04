@@ -1,5 +1,5 @@
 
-module Lecture5
+module Lecture5Ass2
 
 where 
 
@@ -118,12 +118,11 @@ freeInNRCgrid :: Sudoku -> (Row,Column) -> [Value]
 freeInNRCgrid s (r,c) = freeInSeq (nrcGrid s (r,c))
 
 -- All values allowed at (row,column)
-freeAtPos :: Sudoku -> (Row,Column) -> [Value]
-freeAtPos s (r,c) = 
-  (freeInRow s r) 
-   `intersect` (freeInColumn s c) 
-   `intersect` (freeInSubgrid s (r,c)) 
-   `intersect` (freeInNRCgrid s (r,c))
+freeAtPos' :: Sudoku -> Position -> Constrnt -> [Value]
+freeAtPos' s (r,c) xs = let 
+    ys = filter (elem (r,c)) xs 
+  in 
+    foldl1 intersect (map ((values \\) . map s) ys)
 
 injective :: Eq a => [a] -> Bool
 injective xs = nub xs == xs
@@ -163,6 +162,8 @@ extend = update
 update :: Eq a => (a -> b) -> (a,b) -> a -> b 
 update f (y,z) x = if x == y then z else f x 
 
+type Position = (Row,Column)
+type Constrnt = [[Position]]
 type Constraint = (Row,Column,[Value])
 
 type Node = (Sudoku,[Constraint])
@@ -185,12 +186,15 @@ prune _ [] = []
 prune (r,c,v) ((x,y,zs):rest)
   | r == x = (x,y,zs\\[v]) : prune (r,c,v) rest
   | c == y = (x,y,zs\\[v]) : prune (r,c,v) rest
-  | sameblock (r,c) (x,y) = 
-        (x,y,zs\\[v]) : prune (r,c,v) rest
+  | sameblock (r,c) (x,y) = (x,y,zs\\[v]) : prune (r,c,v) rest
+  | samenrcblock (r,c) (x,y) = (x,y,zs\\[v]) : prune (r,c,v) rest
   | otherwise = (x,y,zs) : prune (r,c,v) rest
 
 sameblock :: (Row,Column) -> (Row,Column) -> Bool
 sameblock (r,c) (x,y) = bl r == bl x && bl c == bl y 
+
+samenrcblock :: (Row,Column) -> (Row,Column) -> Bool
+samenrcblock (r,c) (x,y) = nrcbl r == nrcbl x && nrcbl c == nrcbl y
 
 initNode :: Grid -> [Node]
 initNode gr = let s = grid2sud gr in 
@@ -208,8 +212,14 @@ length3rd (_,_,zs) (_,_,zs') = compare (length zs) (length zs')
 -- What can still be filled in
 constraints :: Sudoku -> [Constraint] 
 constraints s = sortBy length3rd 
-    [(r,c, freeAtPos s (r,c)) | 
+    [(r,c, freeAtPos' s (r,c) allConstrnt) | 
                        (r,c) <- openPositions s ]
+
+allConstrnt = rowConstrnt ++ columnConstrnt ++ blockConstrnt ++ nrcBlockConstrnt
+rowConstrnt = [[(r,c)| c <- values ] | r <- values ]
+columnConstrnt = [[(r,c)| r <- values ] | c <- values ]
+blockConstrnt = [[(r,c)| r <- b1, c <- b2 ] | b1 <- blocks, b2 <- blocks ]
+nrcBlockConstrnt = [[(r,c) | r <- b1, c <- b2] | b1 <- nrcBlocks, b2 <- nrcBlocks]
 
 data Tree a = T a [Tree a] deriving (Eq,Ord,Show)
 
