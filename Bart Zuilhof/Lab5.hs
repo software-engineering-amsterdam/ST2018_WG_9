@@ -83,9 +83,9 @@ randomList n = do
 -- Exercise 5
 -- Time spent 
 
--- nrcGen :: IO()
+nrcGen :: IO()
 nrcGen = do 
     sudo <- genRandomSudoku
     prob <- genProblem sudo
-    show sudo
-    show prob
+    showNode sudo
+    showNode prob
