@@ -1,5 +1,5 @@
 
-module Lecture5
+module Lecture5Exercise2
 
 where 
 
@@ -15,10 +15,10 @@ positions, values :: [Int]
 positions = [1..9]
 values    = [1..9] 
 
--- blocks, nrcBlocks :: [[Int]]
--- blocks = [[1..3],[4..6],[7..9]]
--- nrcBlocks =  [[2..4],
---               [6..8]]
+blocks, nrcBlocks :: [[Int]]
+blocks = [[1..3],[4..6],[7..9]]
+nrcBlocks =  [[2..4],
+              [6..8]]
 
 showVal :: Value -> String
 showVal 0 = " "
@@ -213,14 +213,14 @@ openPositions s = [ (r,c) | r <- positions,
 length3rd :: (a,b,[c]) -> (a,b,[c]) -> Ordering
 length3rd (_,_,zs) (_,_,zs') = compare (length zs) (length zs')
 
--- constraints :: Sudoku -> [Constraint] 
--- constraints s = sortBy length3rd 
---     [(r,c, freeAtPos s (r,c)) | 
---                        (r,c) <- openPositions s ]
-
 constraints :: Sudoku -> [Constraint] 
 constraints s = sortBy length3rd 
-    [(r,c, freeAtPos' s (r,c) constrnts)  | (r,c) <- openPositions s]
+    [(r,c, freeAtPos s (r,c)) | 
+                       (r,c) <- openPositions s ]
+
+-- constraints :: Sudoku -> [Constraint] 
+-- constraints s = sortBy length3rd 
+--     [(r,c, freeAtPos' s (r,c) constrnts)  | (r,c) <- openPositions s]
 
 data Tree a = T a [Tree a] deriving (Eq,Ord,Show)
 
