@@ -1,4 +1,4 @@
-# Exercise 2 - Petar Kostic (12294705)
+# Exercise 2 - Time: 1h45m
 ## Changes made in regards to Exercise 1
 ``` haskell
 type Position = (Row,Column)
