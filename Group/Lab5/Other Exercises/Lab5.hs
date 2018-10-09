@@ -11,6 +11,7 @@ module Lab5 where
     solveNRC = solveAndShow exampleNRC
     
     -- | Exercise 3
+    -- Time: 30m
     -- Takes a node, and returns a list of nodes containing all unique sudokus where exactly one element
     -- of the given node's sudoku has been removed.
     eraseValues :: Node -> [Node]
@@ -22,11 +23,31 @@ module Lab5 where
     isMinimal node = all (not . uniqueSol) (eraseValues node) && uniqueSol node
 
     -- Check if a generated sudoku is minimal.
+    -- Test report:
+    -- +-------+-------+-------+
+    -- | 1     |     9 | 6     |
+    -- |  +----|--+ +--|----+  |
+    -- |  |    |  |2|  |    |1 |
+    -- |  |    |  | |  |    |  |
+    -- +-------+-------+-------+
+    -- |  |  3 |  | |7 |    |  |
+    -- |  +----|--+ +--|----+  |
+    -- |       |     3 | 2 8   |
+    -- |  +----|--+ +--|----+  |
+    -- |  |    | 8| |  |    |  |
+    -- +-------+-------+-------+
+    -- | 8|4   |  |5|  |    |3 |
+    -- |  |    | 6| |  |   1|  |
+    -- |  +----|--+ +--|----+  |
+    -- |       |       |       |
+    -- +-------+-------+-------+
+    -- True
     checkMinimal :: IO ()
     checkMinimal = 
         do node <- genRandomSudoku >>= genProblem
            showNode node
            print (isMinimal node)
+    
     
     -- EXERCISE 4, 5 --
     -- 1h
