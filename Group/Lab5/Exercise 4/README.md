@@ -4,7 +4,7 @@ The generator generates a sudoku *without* the added constraint `blockNrcConstrn
 
 The implementation with explanation can be found in `Lab5.hs`. Note that, if no valid problem can be found with the initial random values chosen by the generator, the problem is returned with a lingering node from the tree. However, the blocks from this lingering node are removed.  
 
-To clraify, consider the example below. This is an invalid sudoku problem that was returned by `*Lab5> empty5BlockGen`
+To clarify, consider the example below. This is an invalid sudoku problem that was returned by `*Lab5> empty5BlockGen`
 ```
 *Lab5> empty5BlockGen
 +-------+-------+-------+
