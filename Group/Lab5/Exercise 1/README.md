@@ -1,4 +1,4 @@
-# Exercise 1 - Petar Kostic (12294705)
+# Exercise 1 - Time: 1h30m (mostly spent on learning the implementation)
 
 ``` haskell
 +---------+---------+---------+
