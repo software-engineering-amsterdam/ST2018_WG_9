@@ -112,12 +112,10 @@ subGrid s (r,c) = [ s (r',c') | r' <- bl r, c' <- bl c ]
 nrcSubGrid :: Sudoku -> (Row, Column) -> [Value]
 nrcSubGrid s (r,c) = [s (r',c') | r' <- nrcbl r, c' <- nrcbl c ]
 
--- Takes a sudoku, position and new Constrnt
--- Modified the freeAtPos' function based on the announcement in Canvas. 
+-- Takes a sudoku, position and new Constrnt 
 freeAtPos' :: Sudoku -> Position -> Constrnt -> [Value]
-freeAtPos' s (r,c) xs | length(filter (elem (r,c)) xs) > 0 = let ys = filter (elem (r,c)) xs 
-                                                             in foldl1 intersect (map ((values \\) . map s) ys)
-                      | otherwise                          = [1..9] 
+freeAtPos' s (r,c) xs = let ys = filter (elem (r,c)) xs 
+                         in foldl1 intersect (map ((values \\) . map s) ys)
 
 injective :: Eq a => [a] -> Bool
 injective xs = nub xs == xs
