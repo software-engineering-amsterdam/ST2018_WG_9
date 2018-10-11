@@ -32,10 +32,10 @@ testFermatPrimality k n = do bool <- primeTestsF k (composites !! fromIntegral n
                              if not bool then testFermatPrimality k (fromIntegral n + 1)
                              else return (composites !! fromIntegral n)
 
-infiniteTest :: Int -> IO [Integer]
-infiniteTest n = do list <- replicateM n (testFermatPrimality 1 0)
-                    let nubbed = nub list
-                    return nubbed
+infiniteTest' :: Int -> IO [Integer]
+infiniteTest' n = do list <- replicateM n (testFermatPrimality 1 0)
+                     let nubbed = nub list
+                     return nubbed
 
 primeTestsF :: Int -> Integer -> IO Bool
 primeTestsF k n = do as <- mapM (\ _ -> randomRIO (2, n - 1)) [1 .. k]
@@ -48,29 +48,32 @@ testFermatPrimality' k n = do bool <- primeTestsF k (carmichael !! fromIntegral 
                               if not bool then testFermatPrimality' k (fromIntegral n + 1)
                               else return (carmichael !! fromIntegral n)
 
--- infiniteTest' does the above testFermatPrimality function 'n' amount of times with carmichael
-infiniteTest' :: Int -> IO [Integer]
-infiniteTest' n = do list <- replicateM n (testFermatPrimality' 1 0)
-                     let nubbed = nub list
-                     return nubbed
+-- infiniteTest takes a monadic function, Int 'k', and an Int 'n', replicates that function 'n' amount of times
+-- with 'k' accuracy in the test function. Finally, it returns a list without any duplicates.
+-- This function gives insight into the k values. 
+infiniteTest :: (Monad m, Num t, Eq a) => (t1 -> t -> m a) -> t1 -> Int -> m [a]
+infiniteTest f k n = do list <- replicateM n (f k 0)
+                        let nubbed = nub list
+                        return nubbed
+
+infiniteTestCompsites, infiniteTestCarmichael, infiniteTestMillerRabin:: IO [Integer]
+infiniteTestCompsites   = infiniteTest testFermatPrimality  1 1000
+infiniteTestCarmichael  = infiniteTest testFermatPrimality' 1 1000
+infiniteTestMillerRabin = infiniteTest testMillerRabin      1 1000
 
 carmichael :: [Integer]
 carmichael = [ (6*k+1)*(12*k+1)*(18*k+1) | k <- [2..], prime (6*k+1), prime (12*k+1), prime (18*k+1) ]
 
--- | Exercise 6 - Time: 
+-- | Exercise 6 - Time: 1h
 -- Using carmichael to test the Miller-Rabin primality check
 testMillerRabin :: Int -> Integer -> IO Integer
 testMillerRabin k n = do bool <- primeMR k (carmichael !! fromIntegral n)
                          if not bool then testMillerRabin k (fromIntegral n + 1)
                          else return (carmichael !! fromIntegral n)
 
--- You can use the Miller-Rabin primality check to discover some large Mersenne primes. The recipe: take a prime p, 
--- and use the Miller-Rabin algorithm to check whether (2^p)−1 is also prime. Find information about Mersenne primes 
--- on internet and check whether the numbers that you found are genuine Mersenne primes. Report on your findings.
-
 -- This function shows that we can correctly discover Mersenne Primes up to around 2^x where x = 2,3,5,7,13,17,18,31
-discoverInitalMersennePrimes :: [Integer]
-discoverInitalMersennePrimes = take 4 (filter (\x -> prime (2^x - 1)) primes)
+-- discoverInitalMersennePrimes :: [Integer]
+-- discoverInitalMersennePrimes = take 4 (filter (\x -> prime (2^x - 1)) primes)
 
 -- First argument 'c' is the counter
 -- Second argument 'k' is the k used in Miller-Rabin primality check
