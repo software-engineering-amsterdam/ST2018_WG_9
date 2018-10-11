@@ -37,7 +37,6 @@ showVal 0 = " "
 showVal d = show d
 
 -- Define my own show function to show the new subgrids
-
 showRow :: [Value] -> IO()
 showRow [a1,a2,a3,a4,a5,a6,a7,a8,a9] = 
  do  putChar '|'         ; putChar ' '
@@ -54,62 +53,34 @@ showRow [a1,a2,a3,a4,a5,a6,a7,a8,a9] =
      putStr (showVal a9) ; putChar ' '
      putChar '|'         ; putChar '\n'
 
+showRow2 :: IO()
+showRow2 = putStrLn "|  +----|--+ +--|----+  |"
+
+showRow3 :: [Value] -> IO()
+showRow3 [a1,a2,a3,a4,a5,a6,a7,a8,a9] = 
+    do putChar '|'; putChar ' '
+       putStr (showVal a1) ; putChar '|'
+       putStr (showVal a2) ; putChar ' '
+       putStr (showVal a3) ; putChar ' '
+       putChar '|' ; putChar ' ';
+       putStr (showVal a4) ; putChar '|'
+       putStr (showVal a5) ; putChar '|'
+       putStr (showVal a6) ; putChar ' '
+       putChar '|' ; putChar ' '
+       putStr (showVal a7) ; putChar ' '
+       putStr (showVal a8) ; putChar '|'
+       putStr (showVal a9) ; putChar ' '; putChar '|';
+       putChar '\n'
+
 showGrid :: Grid -> IO()
 showGrid [as,bs,cs,ds,es,fs,gs,hs,is] =
- do putStrLn ("+-------+-------+-------+")
-    showRow as; showRow bs; showRow cs
-    putStrLn ("+-------+-------+-------+")
-    showRow ds; showRow es; showRow fs
-    putStrLn ("+-------+-------+-------+")
-    showRow gs; showRow hs; showRow is
-    putStrLn ("+-------+-------+-------+")
-
-
-
--- showRow :: [Value] -> IO()
--- showRow [a1,a2,a3,a4,a5,a6,a7,a8,a9] = 
---  do  putChar '|'         ; putChar ' '
---      putStr (showVal a1) ; putChar ' '
---      putStr (showVal a2) ; putChar ' '
---      putStr (showVal a3) ; putChar ' '
---      putChar '|'         ; putChar ' '
---      putStr (showVal a4) ; putChar ' '
---      putStr (showVal a5) ; putChar ' '
---      putStr (showVal a6) ; putChar ' '
---      putChar '|'         ; putChar ' '
---      putStr (showVal a7) ; putChar ' '
---      putStr (showVal a8) ; putChar ' '
---      putStr (showVal a9) ; putChar ' '
---      putChar '|'         ; putChar '\n'
-
--- showRow2 :: IO()
--- showRow2 = putStrLn "|  +----|--+ +--|----+  |"
-
--- showRow3 :: [Value] -> IO()
--- showRow3 [a1,a2,a3,a4,a5,a6,a7,a8,a9] = 
---     do putChar '|'; putChar ' '
---        putStr (showVal a1) ; putChar '|'
---        putStr (showVal a2) ; putChar ' '
---        putStr (showVal a3) ; putChar ' '
---        putChar '|' ; putChar ' ';
---        putStr (showVal a4) ; putChar '|'
---        putStr (showVal a5) ; putChar '|'
---        putStr (showVal a6) ; putChar ' '
---        putChar '|' ; putChar ' '
---        putStr (showVal a7) ; putChar ' '
---        putStr (showVal a8) ; putChar '|'
---        putStr (showVal a9) ; putChar ' '; putChar '|';
---        putChar '\n'
-
--- showGrid :: Grid -> IO()
--- showGrid [as,bs,cs,ds,es,fs,gs,hs,is] =
---  do putStrLn "+-------+-------+-------+"
---     showRow as; showRow2; showRow3 bs; showRow3 cs
---     putStrLn "+-------+-------+-------+"
---     showRow3 ds; showRow2; showRow es; showRow2; showRow3 fs
---     putStrLn "+-------+-------+-------+"
---     showRow3 gs; showRow3 hs; showRow2; showRow is
---     putStrLn "+-------+-------+-------+"
+ do putStrLn "+-------+-------+-------+"
+    showRow as; showRow2; showRow3 bs; showRow3 cs
+    putStrLn "+-------+-------+-------+"
+    showRow3 ds; showRow2; showRow es; showRow2; showRow3 fs
+    putStrLn "+-------+-------+-------+"
+    showRow3 gs; showRow3 hs; showRow2; showRow is
+    putStrLn "+-------+-------+-------+"
 
 -- Sudoku here is a function that given that cell, return the value
 type Sudoku = (Row,Column) -> Value
@@ -124,7 +95,7 @@ grid2sud gr = \ (r,c) -> pos gr (r,c)
   pos :: [[a]] -> (Row,Column) -> a 
   pos gr (r,c) = (gr !! (r-1)) !! (c-1)
 
-showSudoku :: Sudoku -> IO ()
+showSudoku :: Sudoku -> IO()
 showSudoku = showGrid . sud2grid
 
 -- All the elements that are filtered by this conditions are concatenated in one integer list
@@ -223,16 +194,16 @@ openPositions s = [ (r,c) | r <- positions, c <- positions, s (r,c) == 0 ]
 length3rd :: (a,b,[c]) -> (a,b,[c]) -> Ordering
 length3rd (_,_,zs) (_,_,zs') = compare (length zs) (length zs')
 
-rowConstrnt, columnConstrnt, blockConstrnt :: [[Position]]
+rowConstrnt, columnConstrnt, blockConstrnt, blockNrcConstrnt :: [[Position]]
 rowConstrnt      = [[(r,c)| c <- values ] | r <- values ]
 columnConstrnt   = [[(r,c)| r <- values ] | c <- values ]
 blockConstrnt    = [[(r,c)| r <- b1, c <- b2 ] | b1 <- blocks,    b2 <- blocks ]
--- blockNrcConstrnt = [[(r,c)| r <- b1, c <- b2 ] | b1 <- nrcBlocks, b2 <- nrcBlocks ]
+blockNrcConstrnt = [[(r,c)| r <- b1, c <- b2 ] | b1 <- nrcBlocks, b2 <- nrcBlocks ]
 
 -- Returns a list at a row and column that you are constrained to choose from
 constraints :: Sudoku -> [Constraint] 
 constraints s = sortBy length3rd [(r,c, freeAtPos' s (r,c) constrnts) | (r,c) <- openPositions s ]
-              where constrnts = rowConstrnt ++ columnConstrnt ++ blockConstrnt --  ++ blockNrcConstrnt
+              where constrnts = rowConstrnt ++ columnConstrnt ++ blockConstrnt ++ blockNrcConstrnt
 
 
 -- TREE RELATED
