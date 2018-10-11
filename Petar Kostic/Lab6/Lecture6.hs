@@ -8,7 +8,6 @@ import Data.Bits
 import Data.List
 import Control.Monad
 import Control.Applicative
-import Data.Bool
 
 
 -- | Exercise 1 - Time: 45 min
@@ -73,9 +72,26 @@ testMillerRabin k n = do bool <- primeMR k (carmichael !! fromIntegral n)
 discoverInitalMersennePrimes :: [Integer]
 discoverInitalMersennePrimes = take 4 (filter (\x -> prime (2^x - 1)) primes)
 
--- Now to use filterM and primeMR 
-discoverMersennePrime :: Int -> IO [Integer]
-discoverMersennePrime k = filterM (\x -> primeMR k (2^x - 1)) primes
+-- First argument 'c' is the counter
+-- Second argument 'k' is the k used in Miller-Rabin primality check
+-- Third argument 'list' is the list of primes
+
+discoverMarsennePrimes :: Int -> Int -> [Integer] -> IO ()
+discoverMarsennePrimes _ _ [] = print "Empty List"
+discoverMarsennePrimes c k (x:xs) = do bool <- primeMR k (2^x - 1)
+                                       if bool
+                                       then do print ("#" ++ show c ++ " Marsenne number with (2^" ++ show x ++ ")-1 ") -- number: " ++ show (2^x - 1))
+                                               discoverMarsennePrimes (c+1) k xs
+                                       else discoverMarsennePrimes c k xs
+
+testMarsennePrimesRunner :: Int -> IO ()
+testMarsennePrimesRunner k = discoverMarsennePrimes 0 k primes
+
+-- Example of how to run
+-- *Lecture6> testMarsennePrimesRunner 1
+
+-- According to https://www.mersenne.org/primes/, the primes found are valid. 
+-- However, the program only manages to find the primes up until #19.
 
 primeMR :: Int -> Integer -> IO Bool
 primeMR _ 2 = return True
