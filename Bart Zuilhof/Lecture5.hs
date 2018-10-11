@@ -102,6 +102,7 @@ subGrid s (r,c) = [ s (r',c') | r' <- bl r, c' <- bl c ]
 nrcGrid s (r,c) = [ s (r',c') | r' <- bl' r, c' <- bl' c ]
 
 
+
 freeInSeq :: [Value] -> [Value]
 freeInSeq seq = values \\ seq 
 

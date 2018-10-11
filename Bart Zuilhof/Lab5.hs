@@ -43,7 +43,7 @@ solveNRC = solveAndShow exampleNRC
 -- Exercise 3
 -- Time spent: 30min
 isMinimal :: Node -> Bool
-isMinimal (sudoku, _) = all (\x-> (not. uniqueSol) (x, constraints x)) (map (eraseS sudoku) (filledPositions sudoku))
+isMinimal (sudoku, _) = all (\x-> (not . uniqueSol) (x, constraints x)) (map (eraseS sudoku) (filledPositions sudoku))
 
 minimalTest :: IO ()
 minimalTest = do    (solution, _) <- genRandomSudoku
@@ -81,11 +81,47 @@ randomList n = do
     return ((r,c):rs)
 
 -- Exercise 5
--- Time spent 
-
+-- Time spent: 5min
+-- The constraint defined by the NRC blocks are taken into account by the generator. So no further code adjustments would be needed.
 nrcGen :: IO()
 nrcGen = do 
     sudo <- genRandomSudoku
     prob <- genProblem sudo
     showNode sudo
     showNode prob
+
+-- +-------+-------+-------+
+-- | 9 7 5 | 3 6 8 | 2 1 4 |
+-- |  +----|--+ +--|----+  |
+-- | 6|2 4 | 7|5|1 | 8 3|9 |
+-- | 3|8 1 | 9|2|4 | 5 6|7 |
+-- +-------+-------+-------+
+-- | 8|5 3 | 6|4|9 | 7 2|1 |
+-- |  +----|--+ +--|----+  |
+-- | 7 9 2 | 1 3 5 | 6 4 8 |
+-- |  +----|--+ +--|----+  |
+-- | 4|1 6 | 8|7|2 | 9 5|3 |
+-- +-------+-------+-------+
+-- | 5|4 9 | 2|8|3 | 1 7|6 |
+-- | 1|3 7 | 5|9|6 | 4 8|2 |
+-- |  +----|--+ +--|----+  |
+-- | 2 6 8 | 4 1 7 | 3 9 5 |
+-- +-------+-------+-------+
+-- +-------+-------+-------+
+-- |     5 |   6   |   1   |
+-- |  +----|--+ +--|----+  |
+-- |  |    | 7|5|  |   3|  |
+-- |  |    |  | |4 |    |  |
+-- +-------+-------+-------+
+-- |  |    |  | |  |    |  |
+-- |  +----|--+ +--|----+  |
+-- |   9   |       |   4   |
+-- |  +----|--+ +--|----+  |
+-- |  |1   |  | |  | 9  |  |
+-- +-------+-------+-------+
+-- |  |    |  |8|  |    |6 |
+-- |  |3   | 5| |  |    |  |
+-- |  +----|--+ +--|----+  |
+-- |       |   1   |       |
+-- +-------+-------+-------+
+    
