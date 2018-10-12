@@ -1,4 +1,6 @@
-# Exercise 1
+# Lab 6 - Group Submission
+
+## Exercise 1
 
 ``` haskell
 -- Call to a second function with an extra parameter
@@ -21,7 +23,7 @@ toBinary 0 = []
 toBinary n = (n `rem` 2) : toBinary(n `quot` 2 )
 ```
 
-# Exercise 2
+## Exercise 2
 
 In ghci, `:set +s` Displays some stats after evaluating each expression, including the elapsed time and number of bytes allocated.
 
@@ -40,7 +42,7 @@ For the fast exponentiation, we are interested in the elapsed time of the functi
 
 As we can see, the `exM` implementation is consistently faster than the `expM` implementation. Additionally, in the case of large exponents, the bytes allocated are consistently lower for `exM`.
 
-# Exercise 3
+## Exercise 3
 
 ``` haskell
 -- filter all non-primes from an infinte list starting at two
@@ -48,7 +50,7 @@ composites :: [Integer]
 composites = filter (not . prime) [2..]
 ```
 
-# Exercise 4
+## Exercise 4
 ### What is the least composite number that you can find that fools the check, for prime_tests_F k with k=1,2,3 ?
 
 
@@ -76,7 +78,7 @@ fmap (\_-> randomRIO (2,n-1)) [1..k]`
 where `k` dictates the number of samples of the infinite list
 
 
-# Exercise 5
+## Exercise 5
 ### Findings when using the Fermats primality check on the Carmicheal numbers
 
 ``` haskell
@@ -101,7 +103,7 @@ carmichaelFTest = test carmichael
 -- exponent).
 ```
 
-# Exercise 6
+## Exercise 6
 ### Findings when using the Robin-Miller primality check on the carmicheal numbers
 ``` haskell
 carmichaelMRTest :: IO Integer
@@ -116,7 +118,7 @@ carmichaelMRTest = test carmichael
 -- than Fermat's test.
 ```
 
-# Exercise 7
+## Exercise 7
 ### Findings when using the Robin-Miller primality check on the carmicheal numbers
 ``` haskell
 mersenneTest :: IO [Integer]
