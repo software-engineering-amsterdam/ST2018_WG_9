@@ -66,8 +66,8 @@ compositeFTest = test composites
 -- For k=1, the test returns 21
 -- For k=2, the test returns 341
 -- For k=3, the test returns 1541
--- When k increases, the chance for a false positive decreases because of the all check
--- In the test.
+-- Any number can return a false positive, when we increase k we run more tests so the
+-- chanche of returning multiple false positives goes down, and the test becomes more accurate.
 ```
 
 ## What happens if you increase k? 
@@ -98,13 +98,13 @@ carmichaelFTest = test carmichael
                             test xs
 
 -- The Carmichael test is likely to return one of the first elements of the 
--- Charmichaels numbers. This is because all the Carmichael numbers are by definition
+-- Carmichael numbers. This is because all the Carmichael numbers are by definition
 -- composites that satisfy the fermat property (if the base number is not divisible by the
 -- exponent).
 ```
 
 ## Exercise 6
-### Findings when using the Robin-Miller primality check on the carmicheal numbers
+### Findings when using the Miller-Rabin primality check on the Carmicheal numbers
 ``` haskell
 carmichaelMRTest :: IO Integer
 carmichaelMRTest = test carmichael
@@ -114,21 +114,31 @@ carmichaelMRTest = test carmichael
                            else
                             test xs
 -- The numbers returned are much larger, this would mean that the MR primality test is less accurate
--- than the Fermat primality test. Emperically, it is also found that this test is slower
+-- than the Fermat primality test. Empirically, it is also found that this test is slower
 -- than Fermat's test.
 ```
 
 ## Exercise 7
-### Findings when using the Robin-Miller primality check on the carmicheal numbers
+### Finding Mersenne primes
 ``` haskell
+
+-- Runner for Mersenne function
 mersenneTest :: IO [Integer]
-mersenneTest n = do
+mersenneTest = mersenneTest' 0
+
+-- Checks for the nth prime and higher if it is a Mersenne prime,
+-- printing the progress.
+mersenneTest' :: Int -> IO [Integer]
+mersenneTest' n = do
                 let p = primes !! n
                 let m = 2^p -1
                 b <- primeMR 2 m 
                 if b then do
                     print p
-                    mersenneTest (n+1)
+                    mersenneTest' (n+1)
                 else 
-                    mersenneTest (n+1)
+                    mersenneTest' (n+1)
+
+-- This function does return genuine Mersenne primes as found online (https://www.mersenne.org/primes).
+-- We ran it for 45 minutes and we found 24 Mersenne primes.
 ```

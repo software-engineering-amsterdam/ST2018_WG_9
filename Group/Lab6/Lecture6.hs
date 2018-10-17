@@ -80,16 +80,25 @@ carmichaelMRTest = test carmichael
 -- </Exercise 6>
 
 -- <Exercise 7>
-mersenneTest :: Int -> IO [Integer]
-mersenneTest n = do
+
+-- Runner for Mersenne function
+mersenneTest :: IO [Integer]
+mersenneTest = mersenneTest' 0
+
+-- Checks for the nth prime and higher if it is a Mersenne prime,
+-- printing the progress.
+mersenneTest' :: Int -> IO [Integer]
+mersenneTest' n = do
                 let p = primes !! n
                 let m = 2^p -1
                 b <- primeMR 2 m 
                 if b then do
                     print p
-                    mersenneTest (n+1)
+                    mersenneTest' (n+1)
                 else 
-                    mersenneTest (n+1)
+                    mersenneTest' (n+1)
+
+-- We ran it for 45 minutes and we found 24 Mersenne primes.
 -- </Exercise 7>
 
 
