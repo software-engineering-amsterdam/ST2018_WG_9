@@ -26,27 +26,21 @@ exM b e m = t * exM ((b * b) `mod` m) (shiftR e 1) m `mod` m
 composites :: [Integer]
 composites = filter (not . prime) [2..]
 
--- | Exercise 4 - Time: 20 min
+-- | Exercise 4, Exercise 5, Exercise 6 - Total: 2,5h to get to a universal approach
 testFermatPrimality :: Int -> Integer -> IO Integer
 testFermatPrimality k n = do bool <- primeTestsF k (composites !! fromIntegral n)
                              if not bool then testFermatPrimality k (fromIntegral n + 1)
                              else return (composites !! fromIntegral n)
 
-infiniteTest' :: Int -> IO [Integer]
-infiniteTest' n = do list <- replicateM n (testFermatPrimality 1 0)
-                     let nubbed = nub list
-                     return nubbed
-
-primeTestsF :: Int -> Integer -> IO Bool
-primeTestsF k n = do as <- mapM (\ _ -> randomRIO (2, n - 1)) [1 .. k]
-                     return (all (\ a -> exM a (n-1) n == 1) as)
-
-
--- | Exercise 5 - Time: 20 min
+-- Carmichael instead of composites
 testFermatPrimality' :: Int -> Integer -> IO Integer
 testFermatPrimality' k n = do bool <- primeTestsF k (carmichael !! fromIntegral n)
                               if not bool then testFermatPrimality' k (fromIntegral n + 1)
                               else return (carmichael !! fromIntegral n)
+
+primeTestsF :: Int -> Integer -> IO Bool
+primeTestsF k n = do as <- mapM (\ _ -> randomRIO (2, n - 1)) [1 .. k]
+                     return (all (\ a -> exM a (n-1) n == 1) as)
 
 -- infiniteTest takes a monadic function, Int 'k', and an Int 'n', replicates that function 'n' amount of times
 -- with 'k' accuracy in the test function. Finally, it returns a list without any duplicates.
@@ -56,25 +50,31 @@ infiniteTest f k n = do list <- replicateM n (f k 0)
                         let nubbed = nub list
                         return nubbed
 
-infiniteTestCompsites, infiniteTestCarmichael, infiniteTestMillerRabin:: IO [Integer]
-infiniteTestCompsites   = infiniteTest testFermatPrimality  1 1000
-infiniteTestCarmichael  = infiniteTest testFermatPrimality' 1 1000
-infiniteTestMillerRabin = infiniteTest testMillerRabin      1 1000
+-- 100 replicates is empirically determined by us, k can be variably assigned in the minumum runner below
+infiniteTestCompsites, infiniteTestCarmichael, infiniteTestMillerRabin:: Int -> IO [Integer]
+infiniteTestCompsites k = infiniteTest testFermatPrimality  k 100
+infiniteTestCarmichael k = infiniteTest testFermatPrimality' k 100
+infiniteTestMillerRabin k = infiniteTest testMillerRabin      k 100
+
+-- K = 1, change source code to change K 
+infiniteTestCompositesMin, infiniteTestCarmichaelMin, infiniteTestMillerRabinMin:: IO Integer
+infiniteTestCompositesMin  = do list <- infiniteTestCompsites 1                               
+                                return $ minimum list
+infiniteTestCarmichaelMin  = do list <- infiniteTestCarmichael 1
+                                return $ minimum list
+infiniteTestMillerRabinMin = do list <- infiniteTestMillerRabin 1
+                                return $ minimum list
 
 carmichael :: [Integer]
 carmichael = [ (6*k+1)*(12*k+1)*(18*k+1) | k <- [2..], prime (6*k+1), prime (12*k+1), prime (18*k+1) ]
 
--- | Exercise 6 - Time: 1h
 -- Using carmichael to test the Miller-Rabin primality check
 testMillerRabin :: Int -> Integer -> IO Integer
 testMillerRabin k n = do bool <- primeMR k (carmichael !! fromIntegral n)
                          if not bool then testMillerRabin k (fromIntegral n + 1)
                          else return (carmichael !! fromIntegral n)
 
--- This function shows that we can correctly discover Mersenne Primes up to around 2^x where x = 2,3,5,7,13,17,18,31
--- discoverInitalMersennePrimes :: [Integer]
--- discoverInitalMersennePrimes = take 4 (filter (\x -> prime (2^x - 1)) primes)
-
+-- | Exercise 7 - Time: 45min
 -- First argument 'c' is the counter
 -- Second argument 'k' is the k used in Miller-Rabin primality check
 -- Third argument 'list' is the list of primes

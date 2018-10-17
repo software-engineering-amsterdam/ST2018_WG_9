@@ -33,72 +33,92 @@ composites :: [Integer]
 composites = filter (not . prime) [2..]
 --  </Exercise 3>
 
--- <Exercise 4>
-compositeFTest :: IO Integer
-compositeFTest = test composites
-    where test (x:xs) = do a <-primeTestsF 3 x
-                           if a then
-                            return x
-                           else
-                            test xs
--- </Exercise 4>
+-- <Exercise 4, Exercise 5, Exervise 6>
+testFermatPrimality :: Int -> Integer -> IO Integer
+testFermatPrimality k n = do bool <- primeTestsF k (composites !! fromIntegral n)
+                             if not bool then testFermatPrimality k (fromIntegral n + 1)
+                             else return (composites !! fromIntegral n)
 
--- <Exercise 5>
+-- Carmichael instead of composites
+testFermatPrimality' :: Int -> Integer -> IO Integer
+testFermatPrimality' k n = do bool <- primeTestsF k (carmichael !! fromIntegral n)
+                              if not bool then testFermatPrimality' k (fromIntegral n + 1)
+                              else return (carmichael !! fromIntegral n)
+
+primeTestsF :: Int -> Integer -> IO Bool
+primeTestsF k n = do as <- mapM (\ _ -> randomRIO (2, n - 1)) [1 .. k]
+                     return (all (\ a -> exM a (n-1) n == 1) as)
+
+-- infiniteTest takes a monadic function, Int 'k', and an Int 'n', replicates that function 'n' amount of times
+-- with 'k' accuracy in the test function. Finally, it returns a list without any duplicates.
+-- This function gives insight into the k values. 
+infiniteTest :: (Monad m, Num t, Eq a) => (t1 -> t -> m a) -> t1 -> Int -> m [a]
+infiniteTest f k n = do list <- replicateM n (f k 0)
+                        let nubbed = nub list
+                        return nubbed
+
+-- 100 replicates is empirically determined by us, k can be variably assigned in the minumum runner below
+infiniteTestCompsites, infiniteTestCarmichael, infiniteTestMillerRabin:: Int -> IO [Integer]
+infiniteTestCompsites k = infiniteTest testFermatPrimality  k 100
+infiniteTestCarmichael k = infiniteTest testFermatPrimality' k 100
+infiniteTestMillerRabin k = infiniteTest testMillerRabin      k 100
+
+-- K = 1, change source code to change K 
+infiniteTestCompositesMin, infiniteTestCarmichaelMin, infiniteTestMillerRabinMin:: IO Integer
+infiniteTestCompositesMin  = do list <- infiniteTestCompsites 1                               
+                                return $ minimum list
+infiniteTestCarmichaelMin  = do list <- infiniteTestCarmichael 1
+                                return $ minimum list
+infiniteTestMillerRabinMin = do list <- infiniteTestMillerRabin 1
+                                return $ minimum list
+
 carmichael :: [Integer]
-carmichael = [ (6*k+1)*(12*k+1)*(18*k+1) | 
-      k <- [2..], 
-      prime (6*k+1), 
-      prime (12*k+1), 
-      prime (18*k+1) ]
+carmichael = [ (6*k+1)*(12*k+1)*(18*k+1) | k <- [2..], prime (6*k+1), prime (12*k+1), prime (18*k+1) ]
 
-carmichaelFTest :: IO Integer
-carmichaelFTest = test carmichael
-    where test (x:xs) = do a <-primeTestsF 1 x
-                           if a then
-                            return x
-                           else
-                            test xs
-
--- The carmichael test is likely to return one of the first elements of the 
--- charmichaels numbers. This is because all the carmichael numbers are by definition
--- composites that satisfy the fermat property (if the base number is not divisible by the
--- exponent).
--- </Exercise 5>
-
--- <Exercise 6>
-carmichaelMRTest :: IO Integer
-carmichaelMRTest = test carmichael
-    where test (x:xs) = do a <-primeMR 1 x
-                           if a then
-                            return x
-                           else
-                            test xs
--- The numbers returned are much larger, this would mean that the MR primality test is less accurate
--- than the Fermat primality test. Emperically, it is also found that this test is slower
--- than Fermat's test.
-
--- </Exercise 6>
+-- Using carmichael to test the Miller-Rabin primality check
+testMillerRabin :: Int -> Integer -> IO Integer
+testMillerRabin k n = do bool <- primeMR k (carmichael !! fromIntegral n)
+                         if not bool then testMillerRabin k (fromIntegral n + 1)
+                         else return (carmichael !! fromIntegral n)
+-- </Exercise 4, Exercise 5, Exercise 6>
 
 -- <Exercise 7>
 
 -- Runner for Mersenne function
-mersenneTest :: IO [Integer]
-mersenneTest = mersenneTest' 0
+testMarsennePrimesRunner :: Int -> IO ()
+testMarsennePrimesRunner k = discoverMarsennePrimes 0 k primes
 
--- Checks for the nth prime and higher if it is a Mersenne prime,
--- printing the progress.
-mersenneTest' :: Int -> IO [Integer]
-mersenneTest' n = do
-                let p = primes !! n
-                let m = 2^p -1
-                b <- primeMR 2 m 
-                if b then do
-                    print p
-                    mersenneTest' (n+1)
-                else 
-                    mersenneTest' (n+1)
+-- Checks for the nth prime and higher if it is a Mersenne prime, printing the progress.
+-- First argument 'c' is the counter
+-- Second argument 'k' is the k used in Miller-Rabin primality check
+-- Third argument 'list' is the list of primes
+discoverMarsennePrimes :: Int -> Int -> [Integer] -> IO ()
+discoverMarsennePrimes _ _ [] = print "Empty List"
+discoverMarsennePrimes c k (x:xs) = do bool <- primeMR k (2^x - 1)
+                                       if bool
+                                       then do print ("#" ++ show c ++ " Marsenne number with (2^" ++ show x ++ ")-1 ") -- number: " ++ show (2^x - 1))
+                                               discoverMarsennePrimes (c+1) k xs
+                                       else discoverMarsennePrimes c k xs
 
 -- We ran it for 45 minutes and we found 24 Mersenne primes.
+-- "#0 Marsenne number with (2^2)-1 "
+-- "#1 Marsenne number with (2^3)-1 "
+-- "#2 Marsenne number with (2^5)-1 "
+-- "#3 Marsenne number with (2^7)-1 "
+-- "#4 Marsenne number with (2^13)-1 "
+-- "#5 Marsenne number with (2^17)-1 "
+-- "#6 Marsenne number with (2^19)-1 "
+-- "#7 Marsenne number with (2^31)-1 "
+-- "#8 Marsenne number with (2^61)-1 "
+-- "#9 Marsenne number with (2^89)-1 "
+-- "#10 Marsenne number with (2^107)-1 "
+-- "#11 Marsenne number with (2^127)-1 "
+-- "#12 Marsenne number with (2^521)-1 "
+-- "#13 Marsenne number with (2^607)-1 "
+-- "#14 Marsenne number with (2^1279)-1 "
+-- "#15 Marsenne number with (2^2203)-1 "
+-- "#16 Marsenne number with (2^2281)-1 "
+-- ... etc
 -- </Exercise 7>
 
 
