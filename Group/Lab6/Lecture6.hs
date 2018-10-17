@@ -4,7 +4,8 @@ module Lecture6
 where 
 
 import System.Random
-
+import Control.Monad
+import Data.List
 
 -- <Exercise 1>
 -- Call to a second function with an extra parameter
@@ -44,10 +45,6 @@ testFermatPrimality' :: Int -> Integer -> IO Integer
 testFermatPrimality' k n = do bool <- primeTestsF k (carmichael !! fromIntegral n)
                               if not bool then testFermatPrimality' k (fromIntegral n + 1)
                               else return (carmichael !! fromIntegral n)
-
-primeTestsF :: Int -> Integer -> IO Bool
-primeTestsF k n = do as <- mapM (\ _ -> randomRIO (2, n - 1)) [1 .. k]
-                     return (all (\ a -> exM a (n-1) n == 1) as)
 
 -- infiniteTest takes a monadic function, Int 'k', and an Int 'n', replicates that function 'n' amount of times
 -- with 'k' accuracy in the test function. Finally, it returns a list without any duplicates.
