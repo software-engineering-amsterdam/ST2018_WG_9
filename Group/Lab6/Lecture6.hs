@@ -35,30 +35,33 @@ composites = filter (not . prime) [2..]
 --  </Exercise 3>
 
 -- <Exercise 4, Exercise 5, Exervise 6>
-testFermatPrimality :: Int -> Integer -> IO Integer
-testFermatPrimality k n = do bool <- primeTestsF k (composites !! fromIntegral n)
-                             if not bool then testFermatPrimality k (fromIntegral n + 1)
-                             else return (composites !! fromIntegral n)
+carmichael :: [Integer]
+carmichael = [ (6*k+1)*(12*k+1)*(18*k+1) | k <- [2..], prime (6*k+1), prime (12*k+1), prime (18*k+1) ]
 
--- Carmichael instead of composites
-testFermatPrimality' :: Int -> Integer -> IO Integer
-testFermatPrimality' k n = do bool <- primeTestsF k (carmichael !! fromIntegral n)
-                              if not bool then testFermatPrimality' k (fromIntegral n + 1)
-                              else return (carmichael !! fromIntegral n)
+testFermatPrimality :: Int -> Integer -> [Integer] -> IO Integer
+testFermatPrimality k n xs = do bool <- primeTestsF k (xs !! fromIntegral n)
+                                if not bool then testFermatPrimality k (fromIntegral n + 1) xs
+                                else return (xs !! fromIntegral n)
 
--- infiniteTest takes a monadic function, Int 'k', and an Int 'n', replicates that function 'n' amount of times
+-- Using carmichael to test the Miller-Rabin primality check
+testMillerRabin :: Int -> Integer -> [Integer] -> IO Integer
+testMillerRabin k n xs = do bool <- primeMR k (xs !! fromIntegral n)
+                            if not bool then testMillerRabin k (fromIntegral n + 1) xs
+                            else return (xs !! fromIntegral n)
+
+-- infiniteTest takes a monadic function, Int 'k', an Int 'n', and a list of numbers 'xs', replicates that function 'n' amount of times
 -- with 'k' accuracy in the test function. Finally, it returns a list without any duplicates.
--- This function gives insight into the k values. 
-infiniteTest :: (Monad m, Num t, Eq a) => (t1 -> t -> m a) -> t1 -> Int -> m [a]
-infiniteTest f k n = do list <- replicateM n (f k 0)
-                        let nubbed = nub list
-                        return nubbed
+-- This function by itself gives insight how the results of the primalityTests are distributed with changed k values. 
+infiniteTest :: (Monad m, Num t, Eq a) => (t2 -> t -> t1 -> m a) -> t2 -> Int -> t1 -> m [a]
+infiniteTest f k n xs = do list <- replicateM n (f k 0 xs)
+                           let nubbed = nub list
+                           return nubbed
 
 -- 100 replicates is empirically determined by us, k can be variably assigned in the minumum runner below
 infiniteTestCompsites, infiniteTestCarmichael, infiniteTestMillerRabin:: Int -> IO [Integer]
-infiniteTestCompsites k = infiniteTest testFermatPrimality  k 100
-infiniteTestCarmichael k = infiniteTest testFermatPrimality' k 100
-infiniteTestMillerRabin k = infiniteTest testMillerRabin      k 100
+infiniteTestCompsites k   = infiniteTest testFermatPrimality  k 100 composites
+infiniteTestCarmichael k  = infiniteTest testFermatPrimality  k 100 carmichael
+infiniteTestMillerRabin k = infiniteTest testMillerRabin      k 100 carmichael
 
 -- K = 1, change source code to change K 
 infiniteTestCompositesMin, infiniteTestCarmichaelMin, infiniteTestMillerRabinMin:: IO Integer
@@ -68,15 +71,6 @@ infiniteTestCarmichaelMin  = do list <- infiniteTestCarmichael 1
                                 return $ minimum list
 infiniteTestMillerRabinMin = do list <- infiniteTestMillerRabin 1
                                 return $ minimum list
-
-carmichael :: [Integer]
-carmichael = [ (6*k+1)*(12*k+1)*(18*k+1) | k <- [2..], prime (6*k+1), prime (12*k+1), prime (18*k+1) ]
-
--- Using carmichael to test the Miller-Rabin primality check
-testMillerRabin :: Int -> Integer -> IO Integer
-testMillerRabin k n = do bool <- primeMR k (carmichael !! fromIntegral n)
-                         if not bool then testMillerRabin k (fromIntegral n + 1)
-                         else return (carmichael !! fromIntegral n)
 -- </Exercise 4, Exercise 5, Exercise 6>
 
 -- <Exercise 7>
@@ -97,7 +91,8 @@ discoverMarsennePrimes c k (x:xs) = do bool <- primeMR k (2^x - 1)
                                                discoverMarsennePrimes (c+1) k xs
                                        else discoverMarsennePrimes c k xs
 
--- We ran it for 45 minutes and we found 24 Mersenne primes.
+-- We ran it for 45 minutes with k = 1 and we found 24 Mersenne primes.
+-- *Lecture6> testMarsennePrimesRunner 1
 -- "#0 Marsenne number with (2^2)-1 "
 -- "#1 Marsenne number with (2^3)-1 "
 -- "#2 Marsenne number with (2^5)-1 "
