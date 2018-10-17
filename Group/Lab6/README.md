@@ -144,6 +144,9 @@ Examples of infiniteTest with `k=1` and `n=100`
 ```
 
 ### What is the least composite number that you can find that fools the check, for prime_tests_F k with k=1,2,3 ?
+Using the functions `infiniteTestCompositesMin`, `infiniteTestCarmichaelMin`, and `infiniteTestMillerRabinMin`, we found  
+
+
 |    Method    |  K = 1 |   K = 2   |   K = 3   |      K = 4     |
 |:------------:|:------:|:---------:|:---------:|:--------------:|
 |  Composites  |    9   |     9     |     9     |       85       |
